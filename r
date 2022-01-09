@@ -30,6 +30,7 @@ if [ -z $choice ]; then
 	./r0
 	exit
 fi
+source check_msxbusdrv
 a=`sed -n ${choice}p < menu`
 echo $choice > ./item
 if [[ -n $2 ]]; then 
