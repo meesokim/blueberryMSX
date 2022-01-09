@@ -177,8 +177,10 @@ static void handleEvent(SDL_Event* event)
         {
             if (inputEventGetState(EC_JOY_BUTTONL) * inputEventGetState(EC_JOY_BUTTONR))
                 actionQuit();
-			else if (inputEventGetState(EC_JOY_BUTTONL) * inputEventGetState(EC_JOY1_BUTTON3))
-				actionToggleVideoColorMode();
+            else if (inputEventGetState(EC_JOY_BUTTONL) * inputEventGetState(EC_JOY1_BUTTON3))
+                actionToggleVideoColorMode();
+            else if (inputEventGetState(EC_JOY_BUTTONL) * inputEventGetState(EC_JOY1_BUTTON2))
+                actionToggleScanlinesEnable();
             else if (inputEventGetState(EC_JOY_BUTTONL))
                 actionDiskQuickChange();
         }
@@ -476,7 +478,7 @@ int main(int argc, char **argv)
     frontled(0);
 #endif
 	fprintf(stderr, "Powered off\n");
-	SDL_Init(0);
-	exit(0);
+//	SDL_Init(0);
+//	exit(0);
 	return 0;
 }
