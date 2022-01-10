@@ -298,9 +298,9 @@ unsigned char GetData(int flag, int delay)
 	unsigned char byte;
 	GPIO_CLR(flag | 0xff);
 	GPIO_SET(DAT_DIR);
-	ndelay(delay*10);
+	ndelay(delay);
 	while(!(GPIO_GET() & MSX_WAIT));
-   ndelay(500);
+   ndelay(10);
 	byte = GPIO_GET();
   	GPIO_SET(MSX_CONTROLS);
    GPIO_SET(LE_D);
@@ -326,7 +326,7 @@ int msxread(char slot_io, unsigned short addr)
       default:
          return 0;      
    }
-	byte = GetData(sio | MSX_RD, 3500);
+	byte = GetData(sio | MSX_RD, 50);
 	return byte;	 
 }
  
@@ -346,7 +346,7 @@ void msxwrite(char slot_io, unsigned short addr, unsigned char byte)
          return;      
    }
 	SetAddress(addr);
-	SetData(MSX_MREQ, sio | MSX_WR, 45, byte);   
+	SetData(MSX_MREQ, sio | MSX_WR, 90, byte);   
 	return;
 }
  
