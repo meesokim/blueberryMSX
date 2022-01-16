@@ -30,7 +30,7 @@
 #include <stdlib.h>  
 #include <fcntl.h>
 #include <sys/mman.h>
-#include <bcm2835.h>
+//#include <bcm2835.h>
 #include <unistd.h>
 #include <time.h>
 #include <sched.h>
@@ -132,8 +132,8 @@ void msxwrite(int slot, unsigned short addr, unsigned char byte) {
 
 int setup_io() {
 	fd = open("/dev/msxbus", O_RDWR);
-	if (!bcm2835_init()) return -1;
-	gpio = bcm2835_regbase(BCM2835_REGBASE_GPIO);
+	//if (!bcm2835_init()) return -1;
+	//gpio = bcm2835_regbase(BCM2835_REGBASE_GPIO);
 	return 0;
 }
 
@@ -144,10 +144,10 @@ void clear_io() {
  
 void checkInt()
 {
-	if (!(bcm2835_gpio_lev(INT_PIN)))
-	{
-		boardSetInt(0x10000);
-	}
+//	if (!(bcm2835_gpio_lev(INT_PIN)))
+//	{
+//		boardSetInt(0x10000);
+//	}
 } 
  
 void msxinit()
@@ -171,7 +171,8 @@ void msxclose()
 
 int msx_pack_check()
 {
-	return !(bcm2835_gpio_lev(SW1_PIN));
+	//return !(bcm2835_gpio_lev(SW1_PIN));
+	return 0;
 }
 void frontled(unsigned char byte)
 {
