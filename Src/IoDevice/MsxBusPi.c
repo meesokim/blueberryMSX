@@ -30,7 +30,11 @@
 #include <stdlib.h>  
 #include <fcntl.h>
 #include <sys/mman.h>
+<<<<<<< HEAD
 #include <bcm2835.h>
+=======
+//#include <bcm2835.h>
+>>>>>>> bcb4a8949565583469feb7a0bc3302640bf28f85
 #include <unistd.h>
 #include <time.h>
 #include <sched.h>
@@ -38,6 +42,7 @@
 #include <pthread.h>
 
 pthread_mutex_t mutex;
+<<<<<<< HEAD
 
 int setup_io();
 void frontled(unsigned char byte);
@@ -48,6 +53,18 @@ void msxwriteio(unsigned short addr, unsigned char byte);
 void clear_io();
 void setup_gclk();
 
+=======
+
+int setup_io();
+void frontled(unsigned char byte);
+int msxread(int slot, unsigned short addr);
+void msxwrite(int slot, unsigned short addr, unsigned char byte);
+int msxreadio(unsigned short addr);
+void msxwriteio(unsigned short addr, unsigned char byte);
+void clear_io();
+void setup_gclk();
+
+>>>>>>> bcb4a8949565583469feb7a0bc3302640bf28f85
 #define MSX_READ 0x10
 #define MSX_WRITE 0
 
@@ -144,10 +161,10 @@ void clear_io() {
  
 void checkInt()
 {
-	if (!(bcm2835_gpio_lev(INT_PIN)))
-	{
-		boardSetInt(0x10000);
-	}
+//	if (!(bcm2835_gpio_lev(INT_PIN)))
+//	{
+//		boardSetInt(0x10000);
+//	}
 } 
  
 void msxinit()
@@ -171,7 +188,8 @@ void msxclose()
 
 int msx_pack_check()
 {
-	return !(bcm2835_gpio_lev(SW1_PIN));
+	//return !(bcm2835_gpio_lev(SW1_PIN));
+	return 0;
 }
 void frontled(unsigned char byte)
 {

@@ -26,8 +26,13 @@ void msxwrite(char slot, unsigned short addr, unsigned char byte);
 int msxreadio(unsigned short addr);
 void msxwriteio(unsigned short addr, unsigned char byte);
 
+<<<<<<< HEAD
 
 #define	 CLASS_NAME "msx"
+=======
+
+#define	 CLASS_NAME "msx"
+>>>>>>> bcb4a8949565583469feb7a0bc3302640bf28f85
 #define  DEVICE_NAME "msxbus"    ///< The device will appear at /dev/MSX Bus using this value
  
 MODULE_LICENSE("GPL");            ///< The license type -- this affects available functionality
@@ -298,9 +303,9 @@ unsigned char GetData(int flag, int delay)
 	unsigned char byte;
 	GPIO_CLR(flag | 0xff);
 	GPIO_SET(DAT_DIR);
-	ndelay(delay*2);
+	ndelay(delay);
 	while(!(GPIO_GET() & MSX_WAIT));
-   ndelay(50);
+   ndelay(10);
 	byte = GPIO_GET();
   	GPIO_SET(MSX_CONTROLS);
    GPIO_SET(LE_D);
@@ -346,7 +351,7 @@ void msxwrite(char slot_io, unsigned short addr, unsigned char byte)
          return;      
    }
 	SetAddress(addr);
-	SetData(MSX_MREQ, sio | MSX_WR, 45, byte);   
+	SetData(MSX_MREQ, sio | MSX_WR, 90, byte);   
 	return;
 }
  
