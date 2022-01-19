@@ -149,7 +149,7 @@ void checkInt()
 		boardSetInt(0x10000);
 	}
 } 
-
+ 
 void msxinit()
 {
 	const struct sched_param priority = {1};

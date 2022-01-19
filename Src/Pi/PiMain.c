@@ -125,7 +125,8 @@ void archTrap(UInt8 value)
 void archQuit()
 {
 	doQuit = 1;
-    system("aconnect -x");
+	SDL_Quit();
+	system("sudo aconnect -x");
 }
 
 static int floppy1LedOn = 0;
@@ -177,11 +178,11 @@ static void handleEvent(SDL_Event* event)
         {
             if (inputEventGetState(EC_JOY_BUTTONL) * inputEventGetState(EC_JOY_BUTTONR))
                 actionQuit();
-            else if (inputEventGetState(EC_JOY_BUTTONL) * inputEventGetState(EC_JOY1_BUTTON3))
-                actionToggleVideoColorMode();
-            else if (inputEventGetState(EC_JOY_BUTTONL) * inputEventGetState(EC_JOY1_BUTTON2))
-                actionToggleScanlinesEnable();
-            else if (inputEventGetState(EC_JOY_BUTTONL))
+		else if (inputEventGetState(EC_JOY_BUTTONL) * inputEventGetState(EC_JOY1_BUTTON4))	// plaire
+				actionToggleVideoColorMode();
+		else if (inputEventGetState(EC_JOY_BUTTONL) * inputEventGetState(EC_JOY1_BUTTON2))
+				actionToggleScanlinesEnable();
+            else if (inputEventGetState(EC_JOY_BUTTONR))	// plaire avoid key duplicate
                 actionDiskQuickChange();
         }
 		joystickButtonUpdate(event);
@@ -326,7 +327,7 @@ int main(int argc, char **argv)
 	keyboardInit(properties);
 
 	// Larger buffers cause sound delay
-	properties->sound.bufSize = 40;
+	// properties->sound.bufSize = 40;
 
 	mixer = mixerCreate();
 	for (i = 0; i < MIXER_CHANNEL_TYPE_COUNT; i++) {
