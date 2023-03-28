@@ -9,7 +9,7 @@
 #
 # Comment out if verbose comilation is wanted
 #
-SILENT = ~/tools/arm-bcm2708/arm-rpi-4.9.3-linux-gnueabihf/bin/arm-linux-gnueabihf-
+#SILENT = ~/tools/arm-bcm2708/arm-rpi-4.9.3-linux-gnueabihf/bin/arm-linux-gnueabihf-
 
 #
 # Directories
@@ -40,7 +40,7 @@ COMMON_FLAGS = -DUSE_EGL -DIS_RPI -DLSB_FIRST -DNO_ASM -DNO_HIRES_TIMERS -DNO_FI
 CFLAGS   = -g -w -O3 -ffast-math -fstrict-aliasing -fomit-frame-pointer $(COMMON_FLAGS)
 CPPFLAGS = -g $(COMMON_FLAGS)
 LDFLAGS  =  
-LIBS     =  -lSDL -lz -lbcm_host -lbrcmEGL -lbrcmGLESv2 -lpthread -ludev
+LIBS     =  -lSDL -lz -lbcm_host -lbrcmEGL -lbrcmGLESv2 -lbcm2835 -lpthread -ludev
 # Uncomment the following line to enable GPIO (requires wiring-pi)
 #CFLAGS   += -DRASPI_GPIO
 
