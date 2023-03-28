@@ -1,19 +1,19 @@
 obj-m := msxbusdrv.o
-HOSTOS=`uname -a`
+HOSTOS=$(shell uname -a | awk '{ print $2 }')
 
-ifeq ($(HOSTOS), Raspberry)
+ifeq ($(findstring raspberrypi, $(HOSTOS)), raspberrypi)
 	KERNEL=/lib/modules/$(shell uname -r)/build
-	PREFIX=
+	COMPILE=
 else
 	KERNEL=~/linux
-	PREFIX=arm-linux-gnueabihf-
+	COMPILE=CROSS_COMPILE=arm-linux-gnueabihf-
 endif
 
 CC=$(PREFIX)gcc
 CXX=$(PREFIX)g++
 
 all: test
-	make ARCH=arm CROSS_COMPILE=$(PREFIX) -C $(KERNEL) M=$(PWD) modules
+	make ARCH=arm $(COMPILE) -C $(KERNEL) M=$(PWD) modules
 
 clean:
 	rm -f test
