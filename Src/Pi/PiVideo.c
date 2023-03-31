@@ -170,6 +170,7 @@ static const GLfloat vertices[] = {
 int piInitVideo()
 {
 	bcm_host_init();
+	vcos_init();
 
 	// get an EGL display connection
 	display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
