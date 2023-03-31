@@ -9,7 +9,7 @@
 #
 # Comment out if verbose comilation is wanted
 #
-#SILENT = @
+#SILENT = ~/tools/arm-bcm2708/arm-rpi-4.9.3-linux-gnueabihf/bin/arm-linux-gnueabihf-
 
 #
 # Directories
