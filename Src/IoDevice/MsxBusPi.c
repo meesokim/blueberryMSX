@@ -30,7 +30,7 @@
 #include <stdlib.h>  
 #include <fcntl.h>
 #include <sys/mman.h>
-#include <bcm2835.h>
+// #include <bcm2835.h>
 #include <unistd.h>
 #include <time.h>
 #include <sched.h>
@@ -49,61 +49,61 @@ void setup_gclk();
 #define MSX_READ 0x10
 #define MSX_WRITE 0
 
-#define RD0		0
-#define RD1		1
-#define RD2		2
-#define RD3		3
-#define RD4		4
-#define RD5		5
-#define RD6		6
-#define RD7		7
-#define RA8		8
-#define RA9		9
-#define RA10	10
-#define RA11	11
-#define RA12	12
-#define RA13	13
-#define RA14	14
-#define RA15	15
-#define RC16	16
-#define RC17	17
-#define RC18	18
-#define RC19	19
-#define RC20	20
-#define RC21	21
-#define RC22	22
-#define RC23	23
-#define RC24	24
-#define RC25	25
-#define RC26	26
-#define RC27	27
+// #define RD0		0
+// #define RD1		1
+// #define RD2		2
+// #define RD3		3
+// #define RD4		4
+// #define RD5		5
+// #define RD6		6
+// #define RD7		7
+// #define RA8		8
+// #define RA9		9
+// #define RA10	10
+// #define RA11	11
+// #define RA12	12
+// #define RA13	13
+// #define RA14	14
+// #define RA15	15
+// #define RC16	16
+// #define RC17	17
+// #define RC18	18
+// #define RC19	19
+// #define RC20	20
+// #define RC21	21
+// #define RC22	22
+// #define RC23	23
+// #define RC24	24
+// #define RC25	25
+// #define RC26	26
+// #define RC27	27
 
-#define INT_PIN		RC24
-#define SW1_PIN		RC27
+// #define INT_PIN		RC24
+// #define SW1_PIN		RC27
 
-#define GPIO_GPSET0     7
-#define GPIO_GPSET1     8
+// #define GPIO_GPSET0     7
+// #define GPIO_GPSET1     8
 
-#define GPIO_GPCLR0     10
-#define GPIO_GPCLR1     11
+// #define GPIO_GPCLR0     10
+// #define GPIO_GPCLR1     11
 
-#define GPIO_GPLEV0     13
-#define GPIO_GPLEV1     14
+// #define GPIO_GPLEV0     13
+// #define GPIO_GPLEV1     14
 
-volatile unsigned int* gpio;
+// volatile unsigned int* gpio;
 
-inline void GPIO_SET(unsigned int b)
-{
-	gpio[GPIO_GPSET0] = b;
-}
+// inline void GPIO_SET(unsigned int b)
+// {
+// 	gpio[GPIO_GPSET0] = b;
+// }
 
-inline void GPIO_CLR(unsigned int b)
-{
-	gpio[GPIO_GPCLR0] = b;
-}
+// inline void GPIO_CLR(unsigned int b)
+// {
+// 	gpio[GPIO_GPCLR0] = b;
+// }
 
 int fd;
-volatile unsigned int *gpio;
+// volatile unsigned int *gpio;
 
 enum {
    SLOT1,
@@ -130,8 +130,8 @@ void msxwrite(int slot, unsigned short addr, unsigned char byte) {
 
 int setup_io() {
 	fd = open("/dev/msxbus", O_RDWR);
-	if (!bcm2835_init()) return -1;
-	gpio = bcm2835_regbase(BCM2835_REGBASE_GPIO);
+	// if (!bcm2835_init()) return -1;
+	// gpio = bcm2835_regbase(BCM2835_REGBASE_GPIO);
 	return 0;
 }
 
@@ -153,12 +153,12 @@ void msxinit()
 	const struct sched_param priority = {1};
 	sched_setscheduler(0, SCHED_FIFO, &priority);  
 //	stick_this_thread_to_core(0);
-	if (setup_io() == -1)
-    {
-        printf("GPIO init error\n");
-        exit(0);
-    }
-    frontled(0x0);
+	// if (setup_io() == -1)
+    // {
+    //     printf("GPIO init error\n");
+    //     exit(0);
+    // }
+    // frontled(0x0);
 	printf("MSX BUS initialized\n");
 }
 
@@ -182,17 +182,17 @@ void frontled(unsigned char byte)
     {
         oldbyte = byte;
         pthread_mutex_lock(&mutex);
-        GPIO_CLR(SRCLK | RCLK | SER);
-        for (int i = 0; i < 8; i++)
-        {
-            if ((byte >> i) & 1)
-                GPIO_SET(SER);
-            else
-                GPIO_CLR(SER);
-            GPIO_SET(SRCLK);
-            GPIO_CLR(SRCLK);
-        }
-        GPIO_SET(RCLK);
+        // GPIO_CLR(SRCLK | RCLK | SER);
+        // for (int i = 0; i < 8; i++)
+        // {
+        //     if ((byte >> i) & 1)
+        //         GPIO_SET(SER);
+        //     else
+        //         GPIO_CLR(SER);
+        //     GPIO_SET(SRCLK);
+        //     GPIO_CLR(SRCLK);
+        // }
+        // GPIO_SET(RCLK);
         pthread_mutex_unlock(&mutex);	    
     }
 }
