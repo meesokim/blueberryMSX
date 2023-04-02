@@ -33,7 +33,7 @@
 /* Type definitions */
 typedef struct Mixer Mixer;
 
-#define AUDIO_MONO_BUFFER_SIZE    10000
+#define AUDIO_MONO_BUFFER_SIZE    40000
 #define AUDIO_STEREO_BUFFER_SIZE  (2 * AUDIO_MONO_BUFFER_SIZE)
 
 #define AUDIO_SAMPLERATE       44100

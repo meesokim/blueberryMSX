@@ -18,6 +18,7 @@
 #include <linux/uaccess.h>          // Required for the copy to user function
 #include <linux/delay.h>
 #include <linux/gpio.h>
+#include <asm/io.h>
 #include "rpi-gpio.h"
 #include "rpmcv8.h"
 
@@ -25,6 +26,7 @@ int msxread(char slot, unsigned short addr);
 void msxwrite(char slot, unsigned short addr, unsigned char byte);
 int msxreadio(unsigned short addr);
 void msxwriteio(unsigned short addr, unsigned char byte);
+
 
 #define	 CLASS_NAME "msx"
 #define  DEVICE_NAME "msxbus"    ///< The device will appear at /dev/MSX Bus using this value
@@ -115,7 +117,7 @@ static int __init msxbus_init(void){
       printk(KERN_ALERT "Failed to create the device\n");
       return PTR_ERR(msxbusDevice);
    }
-	gpio = (unsigned int *)ioremap_wc(GPIO_BASE, GPIO_GPPUDCLK1*4);
+	gpio = (unsigned int *)ioremap(GPIO_BASE, GPIO_GPPUDCLK1*4);
 	gpio[GPIO_GPFSEL0] = GPIO_FSEL0_OUT | GPIO_FSEL1_OUT | GPIO_FSEL2_OUT | GPIO_FSEL3_OUT | GPIO_FSEL4_OUT | GPIO_FSEL5_OUT | GPIO_FSEL6_OUT | GPIO_FSEL7_OUT | GPIO_FSEL8_OUT | GPIO_FSEL9_OUT;
 	gpio[GPIO_GPFSEL1] = GPIO_FSEL0_OUT | GPIO_FSEL1_OUT | GPIO_FSEL2_OUT | GPIO_FSEL3_OUT | GPIO_FSEL4_OUT | GPIO_FSEL5_OUT | GPIO_FSEL6_OUT | GPIO_FSEL7_OUT | GPIO_FSEL8_OUT | GPIO_FSEL9_OUT;
 	gpio[GPIO_GPFSEL2] = GPIO_FSEL0_OUT | GPIO_FSEL1_OUT | GPIO_FSEL2_OUT | GPIO_FSEL3_OUT | GPIO_FSEL4_OUT | GPIO_FSEL5_OUT | GPIO_FSEL6_OUT | GPIO_FSEL7_OUT;   
@@ -158,7 +160,7 @@ static int dev_open(struct inode *inodep, struct file *filep){
    numberOpens++;
    printk(KERN_INFO "MSX Bus: Device has been opened %d time(s)\n", numberOpens);
 #if 1
-	gclk = ioremap_wc(CLOCK_BASE, 0x80*4);
+	gclk = ioremap(CLOCK_BASE, 0x80*4);
 	if (gclk != NULL)
 	{
 		int divi, divr, divf, freq, divisor;
@@ -238,7 +240,7 @@ static ssize_t dev_write(struct file *filep, const char *buffer, size_t len, lof
  *  @param filep A pointer to a file object (defined in linux/fs.h)
  */
 static int dev_release(struct inode *inodep, struct file *filep){
-	gclk = ioremap_wc(CLOCK_BASE, 0x80*4);
+	gclk = ioremap(CLOCK_BASE, 0x80*4);
 	if (gclk != NULL)
 	{
       gclk[GP_CLK0_CTL] = 0x5A000000 | 1;    // GPCLK0 off
@@ -322,11 +324,10 @@ int msxread(char slot_io, unsigned short addr)
          break;
       case IO:
          sio = MSX_IORQ;
-         break;
       default:
          return 0;      
    }
-	byte = GetData(sio | MSX_RD, 250);
+	byte = GetData(sio | MSX_RD, 50);
 	return byte;	 
 }
  
@@ -349,4 +350,3 @@ void msxwrite(char slot_io, unsigned short addr, unsigned char byte)
 	SetData(MSX_MREQ, sio | MSX_WR, 90, byte);   
 	return;
 }
- 

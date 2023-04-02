@@ -414,7 +414,7 @@ static void emulatorThread() {
 //extern int xxxx;
 
 void emulatorStart(const char* stateName) {
-        dbgEnable();
+    dbgEnable();
 
     archEmulationStartNotification();
 //xxxx = 0;
@@ -679,7 +679,7 @@ static int WaitForSync(int maxSpeed, int breakpointHit)
 
     if (emuState != EMU_RUNNING) {
         archEventSet(emuStartEvent);
-        archThreadSleep(100);
+        archThreadSleep(10);
         emuSuspendFlag = 0;
         return emuExitFlag ? -1 : 0;
     }

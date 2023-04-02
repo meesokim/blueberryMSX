@@ -101,7 +101,7 @@ static BoardTimer*  periodicTimer;
 
 void boardTimerCleanup();
 
-#define HIRES_CYCLES_PER_LORES_CYCLE (UInt64)100000
+#define HIRES_CYCLES_PER_LORES_CYCLE (UInt64)200000
 #define boardFrequency64() (HIRES_CYCLES_PER_LORES_CYCLE * boardFrequency())
 
 
@@ -109,7 +109,7 @@ static void boardPeriodicCallback(void* ref, UInt32 time)
 {
     if (periodicCb != NULL) {
         periodicCb(periodicRef, time);
-        boardTimerAdd(periodicTimer, time + periodicInterval);
+        boardTimerAdd(periodicTimer, time + periodicInterval / 2);
     }
 }
 
