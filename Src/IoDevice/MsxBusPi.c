@@ -112,10 +112,16 @@ volatile unsigned *timer_base;
 #define OUT_GPIO(g) *(gpio+((g)/10)) |=  (1<<(((g)%10)*3))
 #define SET_GPIO_ALT(g,a) *(gpio+(((g)/10))) |= (((a)<=3?(a)+4:(a)==4?3:2)<<(((g)%10)*3))
  
+#define GPIO_SET(a) bcm2835_peri_write(gpio7, a)  // sets   bits which are 1 ignores bits which are 0
+#define GPIO_CLR(a) bcm2835_peri_write(gpio10, a) // clears bits which are 1 ignores bits which are 0
+// #define GPIO_SET(a) *gpio7=a  // sets   bits which are 1 ignores bits which are 0
+// #define GPIO_CLR(a) *gpio10=a // clears bits which are 1 ignores bits which are 0
+#define GPIO_SEL(a, b) *(gpio) = b;__sync_synchronize();
 #define GPIO_SET *(gpio7)  // sets   bits which are 1 ignores bits which are 0
 #define GPIO_CLR *(gpio10) // clears bits which are 1 ignores bits which are 0
 #define GPIO_SEL *(gpio) 
-#define GET_GPIO(g) (*(gpio13)&(1<<g)) // 0 if LOW, (1<<g) if HIGH
+// #define GET_GPIO(g) (*(gpio13)&(1<<g)) // 0 if LOW, (1<<g) if HIGH
+#define GPIO_GET(a) bcm2835_peri_read(gpio13)
 #define GPIO (*(gpio13))
  
 #define GPIO_PULL *(gpio+37) // Pull up/pull down
@@ -285,7 +291,8 @@ void checkInt()
 
 void SetAddress(unsigned short addr)
 {
-	GPIO_CLR = LE_C | 0xffff;
+	GPIO_CLR = LE_C;
+	GPIO_CLR = 0xffff;
 	GPIO_SET = LE_A | LE_D | addr;
     GPIO_CLR = LE_A;
 	GPIO_SET = LE_C | MSX_CONTROLS;
@@ -305,11 +312,10 @@ void SetData(int ioflag, int flag, int delay, unsigned char byte)
 	GPIO_CLR = MSX_WR | ioflag | DAT_DIR | 0xff; 
 	GPIO_SET = byte;
 	GPIO_CLR = flag;
-    SetDelay(10);
+    SetDelay(100);
 	while(!(GPIO & MSX_WAIT));
   	GPIO_SET = MSX_CONTROLS;
 	GPIO_CLR = LE_C;
-
 }   
 
 unsigned char GetData(int flag, int rflag, int delay)
@@ -317,8 +323,9 @@ unsigned char GetData(int flag, int rflag, int delay)
 	register unsigned char byte;
 	GPIO_CLR = rflag;
 	GPIO_CLR = flag;
-	byte = GPIO;
-	while(!(GPIO & MSX_WAIT) || delay--); 	
+	SetDelay(100);
+	while(!(GPIO & MSX_WAIT));	
+	SetDelay(10);
 	byte = GPIO;
   	GPIO_SET = LE_D | MSX_CONTROLS;
 	GPIO_CLR = LE_C;

@@ -30,6 +30,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <sys/ioctl.h>
 extern "C" {
 #include "MsxBusPi.h"
 #include "MsxBus.h"
@@ -39,6 +42,24 @@ extern void ledSetSlot2Busy();
 extern void checkInt(void);
 };
 //#define FAKE_ROM
+enum {
+	// -- cmd0: read memory no slot
+	RD_MEM,
+	// -- cmd1: read memory slot#1 
+	RD_SLOT1,
+	// -- cmd2: read memory slot#2
+	RD_SLOT2,
+	// -- cmd3: read io 
+	RD_IO, 
+	// -- cmd4: write memory no slot 
+	WR_MEM,
+	// -- cmd5: write memory slot#1
+	WR_SLOT1,
+	// -- cmd6: write memory slot#2
+	WR_SLOT2,
+	// -- cmd7: write io	
+	WR_IO
+};
 #ifdef WIN32
 class CMSXBUS
 {
@@ -54,6 +75,7 @@ class CMSXBUS
 };
 
 #else
+
 
 class CMSXBUS 
 {
@@ -78,6 +100,32 @@ private:
 	int page[4];
 	int skip = 0;
 	struct timespec t1, t2;	
+	int fd;
+
+#if 0
+	void setup_io() {
+		fd = open("/dev/rpmc", O_RDWR);
+		printf("%x\n", fd);
+	}
+	void clear_io() {
+		close(fd);
+	}	
+	int msxreadio(unsigned short addr) {
+		return ioctl(fd, RD_IO, addr);	
+	}
+
+	void msxwriteio(unsigned short addr, unsigned char byte) {
+		ioctl(fd, WR_IO, addr | (byte << 16));
+	}
+
+	int msxread(int cmd, unsigned short addr) {
+		return ioctl(fd, RD_SLOT1 + cmd, addr);
+	}
+
+	void msxwrite(int cmd, unsigned short addr, unsigned char byte) {
+		ioctl(fd, WR_SLOT1 + cmd, addr | (byte << 16));
+	}
+#endif
 };
 
 CMSXBUS::CMSXBUS(int mbSlot) : 
@@ -86,7 +134,7 @@ CMSXBUS::CMSXBUS(int mbSlot) :
 }
 
 CMSXBUS::~CMSXBUS() {
-//	free(bin);
+	// clear_io();
 	msxclose();
 }
 
@@ -107,34 +155,10 @@ int CMSXBUS::readMemory(UInt16 address)
 {
 	checkInt();
 	int byte = msxread(slot, address);
+	// int byte =  ioctl(fd, slot+1, address);
 	int value = byte;
 	static int time = 0;
-#ifdef FAKE_ROM	
-	int p = -1;
-	if (size > 32768) {
-		if (address >= 0x4000 && address <= 0x5fff)
-			p = 0;
-		else if (address >= 0x6000 && address <= 0x7fff)
-			p = 1;
-		else if (address >= 0x8000 && address <= 0x9fff)
-			p = 2;
-		else if (address >= 0xa000 && address <= 0xbfff)
-			p = 3;
-		if (p > -1 && skip == 0)
-			value = bin[address & 0x1fff + page[p] * 0x2000];
-	} else if (size > 0)
-	{
-		if (size < 32768)
-			value = bin[address & 0x3fff];
-		else
-			value = bin[address & 0xcfff];
-	}
-//	if (slot == 1 && byte != value)
-//		printf("read%d: 0x%04x-%02x:%02x\n", slot, address, value, byte);
-	if (address >= 0x8000)
-		value = 0xff;
-	byte = value;
-#endif
+
 #ifdef RPMC_FRONTLED
 	if (time++ > 100)
 	{
@@ -152,9 +176,6 @@ int CMSXBUS::writeMemory(UInt16 address, UInt8 value)
 {
 	checkInt();
 	msxwrite(slot, address, value);
-//	msxwrite(slot, address, value);
-//	if (slot == 1)
-//		printf("write%d: 0x%04x-%02x\n", slot, address, value);
     return true;
 }
 
@@ -162,7 +183,6 @@ int CMSXBUS::readIo(UInt16 port)
 {
 	checkInt();
 	int value = msxreadio(port);
-// 	printf("readio(%02x): %02x\n", port, value);
     return value;
 }
 
@@ -170,7 +190,6 @@ int CMSXBUS::writeIo(UInt16 port, UInt8 value)
 {
 	checkInt();
 	msxwriteio(port, value);
-// 	printf("writeio(%02x): %02x\n", port, value);
     return true;
 }
 
@@ -193,7 +212,7 @@ static void DeinitializeMSXBUSs()
 {
     if (MSXBUSs[0]!= NULL) {
 #ifndef WIN32		
-		msxclose();
+		// msxclose();
 #endif		
         delete MSXBUSs[0];
 		delete MSXBUSs[1];
