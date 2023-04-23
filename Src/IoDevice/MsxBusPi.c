@@ -112,17 +112,28 @@ volatile unsigned *timer_base;
 #define OUT_GPIO(g) *(gpio+((g)/10)) |=  (1<<(((g)%10)*3))
 #define SET_GPIO_ALT(g,a) *(gpio+(((g)/10))) |= (((a)<=3?(a)+4:(a)==4?3:2)<<(((g)%10)*3))
  
-#define GPIO_SET(a) bcm2835_peri_write(gpio7, a)  // sets   bits which are 1 ignores bits which are 0
-#define GPIO_CLR(a) bcm2835_peri_write(gpio10, a) // clears bits which are 1 ignores bits which are 0
+// #define GPIO_SET(a) bcm2835_peri_write(gpio7, a)  // sets   bits which are 1 ignores bits which are 0
+// #define GPIO_CLR(a) bcm2835_peri_write(gpio10, a) // clears bits which are 1 ignores bits which are 0
 // #define GPIO_SET(a) *gpio7=a  // sets   bits which are 1 ignores bits which are 0
 // #define GPIO_CLR(a) *gpio10=a // clears bits which are 1 ignores bits which are 0
 #define GPIO_SEL(a, b) *(gpio) = b;__sync_synchronize();
-#define GPIO_SET *(gpio7)  // sets   bits which are 1 ignores bits which are 0
-#define GPIO_CLR *(gpio10) // clears bits which are 1 ignores bits which are 0
-#define GPIO_SEL *(gpio) 
+// #define GPIO_SET *(gpio7)  // sets   bits which are 1 ignores bits which are 0
+// #define GPIO_CLR *(gpio10) // clears bits which are 1 ignores bits which are 0
+// #define GPIO_SEL *(gpio) 
 // #define GET_GPIO(g) (*(gpio13)&(1<<g)) // 0 if LOW, (1<<g) if HIGH
-#define GPIO_GET(a) bcm2835_peri_read(gpio13)
-#define GPIO (*(gpio13))
+// #define GPIO_GET() bcm2835_peri_read(gpio13)
+inline void GPIO_CLR(uint32_t a) {
+	*gpio10 = a;
+	__sync_synchronize();
+}
+inline void GPIO_SET(uint32_t a) {
+	*gpio7 = a;
+	__sync_synchronize();
+}
+inline uint32_t GPIO_GET() {
+	__sync_synchronize();
+	return *gpio13;
+}
  
 #define GPIO_PULL *(gpio+37) // Pull up/pull down
 #define GPIO_PULLCLK0 *(gpio+38) // Pull up/pull down clock
@@ -291,12 +302,12 @@ void checkInt()
 
 void SetAddress(unsigned short addr)
 {
-	GPIO_CLR = LE_C;
-	GPIO_CLR = 0xffff;
-	GPIO_SET = LE_A | LE_D | addr;
-    GPIO_CLR = LE_A;
-	GPIO_SET = LE_C | MSX_CONTROLS;
-	GPIO_CLR = LE_D | 0xff;
+	GPIO_SEL(0, 0x49249249);
+	GPIO_CLR(LE_C | 0xffff);
+	GPIO_SET(LE_A | LE_D | addr);
+    GPIO_CLR(LE_A);
+	GPIO_SET(LE_C | MSX_CONTROLS);
+	GPIO_CLR(LE_D | 0xff);
 }	
 
 void SetDelay(int j)
@@ -304,47 +315,41 @@ void SetDelay(int j)
 	// unsigned time = *(timer_base+1);
 	// while(*(timer_base+1)<time + j);
 	for(int i=0; i<j/2; i++)
-	    GPIO_SET = 0;
+	    GPIO_SET(0);
 }
 
 void SetData(int ioflag, int flag, int delay, unsigned char byte)
 {
-	GPIO_CLR = MSX_WR | ioflag | DAT_DIR | 0xff; 
-	GPIO_SET = byte;
-	GPIO_CLR = flag;
-    SetDelay(100);
-	while(!(GPIO & MSX_WAIT));
-  	GPIO_SET = MSX_CONTROLS;
-	GPIO_CLR = LE_C;
+	GPIO_CLR(DAT_DIR | 0xff); 
+	GPIO_SET(byte);
+	GPIO_CLR(MSX_WR | ioflag | flag);
+    SetDelay(20);
+	while(!(GPIO_GET() & MSX_WAIT));
+  	GPIO_SET(MSX_CONTROLS);
+	GPIO_CLR(LE_C);
 }   
 
 unsigned char GetData(int flag, int rflag, int delay)
 {
-	register unsigned char byte;
-	GPIO_CLR = rflag;
-	GPIO_CLR = flag;
-	SetDelay(100);
-	while(!(GPIO & MSX_WAIT));	
-	SetDelay(10);
-	byte = GPIO;
-  	GPIO_SET = LE_D | MSX_CONTROLS;
-	GPIO_CLR = LE_C;
+	register uint32_t byte;
+	GPIO_CLR(rflag | flag | 0xff);
+	GPIO_SEL(0,0x49000000);
+	SetDelay(14);
+	while(!(byte & MSX_WAIT)) byte = GPIO_GET();
+  	GPIO_SET(LE_D | MSX_CONTROLS);
+	GPIO_CLR(LE_C);
 	return byte;
 }
 
  int msxread(int slot, unsigned short addr)
  {
 	unsigned char byte;
-	int cs1, cs2, cs12;
+	int cs1, cs2;
 	SetAddress(addr);
 	cs1 = (addr & 0xc000) == 0x4000 ? MSX_CS1: 0;
-	cs2 = (addr & 0xc000) == 0x8000 ? MSX_CS2: 0;
-	GPIO_SET = DAT_DIR;
-	byte = GetData((slot == 0 ? MSX_SLTSL1 : MSX_SLTSL3) | MSX_MREQ, MSX_RD | cs1 | cs2, 50);
-#ifdef DEBUG    
-	printf("+%04x:%02xr\n", addr, byte);
-#endif
-	return byte;	 
+	cs2 = cs1 ? 0 : MSX_CS2;
+	GPIO_SET(DAT_DIR);
+	return GetData((slot == 0 ? MSX_SLTSL1 : MSX_SLTSL3) | MSX_MREQ, MSX_RD | cs1 | cs2, 50);	 
  }
  
  void msxwrite(int slot, unsigned short addr, unsigned char byte)
@@ -392,7 +397,7 @@ int rtapi_open_as_root(const char *filename, int mode) {
 //
 // Set up a memory regions to access GPIO
 //
-int dir[28] = { 1,1,1,1,1,1,1,1,1,1,  1,1,1,1,1,1,1,1,1,1,  1,1,1,1,0,1,0,0 };
+int dir[28] = { 1,1,1,1,1,1,1,1,1,1,  1,1,1,1,1,1,1,1,1,1,  1,1,1,1,0,0,0,0 };
 int setup_io()
 {
 	int i, speed_id, divisor ;	
@@ -438,13 +443,13 @@ int setup_io()
 	// 	bcm2835_gpio_pudclk(i, 1);
 	bcm2835_gpio_pudclk(27,1);
 	
-	GPIO_SET = LE_C | MSX_CONTROLS | MSX_WAIT | MSX_INT;
-	GPIO_SET = LE_A | LE_D;
-	GPIO_CLR = LE_C | 0xffff;
-	GPIO_CLR = LE_C;
-	GPIO_CLR = MSX_RESET;
+	GPIO_SET(LE_C | MSX_CONTROLS | MSX_WAIT | MSX_INT);
+	GPIO_SET(LE_A | LE_D);
+	GPIO_CLR(LE_C | 0xffff);
+	GPIO_CLR(LE_C);
+	GPIO_CLR(MSX_RESET);
 	for(int i=0;i<2000000;i++);
-	GPIO_SET = MSX_RESET;
+	GPIO_SET(MSX_RESET);
 	for(int i=0;i<1000000;i++);
 	return 0;
 } // setup_io

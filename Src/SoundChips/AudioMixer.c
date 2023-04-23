@@ -466,7 +466,7 @@ void mixerSync(Mixer* mixer)
     elapsed        = mixer->rate * (UInt64)(systemTime - mixer->refTime) + mixer->refFrag;
     mixer->refTime = systemTime;
     mixer->refFrag = (UInt32)(elapsed % (mixerCPUFrequency * (boardFrequency() / 3579545)));
-    count          = (UInt32)(elapsed / (mixerCPUFrequency * (boardFrequency() / 3579545)));
+    count          = (UInt32)(elapsed / (mixerCPUFrequency * (boardFrequency() / 3579545))) * 2;
 
     if (count == 0 || count > AUDIO_MONO_BUFFER_SIZE) {
         return;
