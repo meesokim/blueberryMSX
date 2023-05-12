@@ -35,12 +35,14 @@
 #include "Properties.h"
 #include "VideoRender.h"
 
+#if defined RASPPI
 #include <bcm_host.h>
 #include <interface/vchiq_arm/vchiq_if.h>
 #include <EGL/egl.h>
 #include <GLES2/gl2.h>
+#endif
 #include <SDL.h>
-
+#include <SDL_opengles2.h>
 typedef	struct ShaderInfo {
 	GLuint program;
 	GLint a_position;
@@ -73,11 +75,6 @@ static GLuint createProgram(const char *vertexShaderSrc, const char *fragmentSha
 static void setOrtho(float m[4][4],
 	float left, float right, float bottom, float top,
 	float near, float far, float scaleX, float scaleY);
-
-static EGL_DISPMANX_WINDOW_T nativeWindow;
-static EGLDisplay display = NULL;
-static EGLSurface surface = NULL;
-static EGLContext context = NULL;
 
 uint32_t screenWidth = 0;
 uint32_t screenHeight = 0;
@@ -167,109 +164,32 @@ static const GLfloat vertices[] = {
 	-0.5, +0.5f, 0.0f,
 };
 
+SDL_Window* wnd;
 int piInitVideo()
 {
-	bcm_host_init();
-	vcos_init();
-
-	// get an EGL display connection
-	display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
-	if (display == EGL_NO_DISPLAY) {
-		fprintf(stderr, "eglGetDisplay() failed: EGL_NO_DISPLAY\n");
-		return 0;
-	}
-
-	// initialize the EGL display connection
-	EGLBoolean result = eglInitialize(display, NULL, NULL);
-	if (result == EGL_FALSE) {
-		fprintf(stderr, "eglInitialize() failed: EGL_FALSE\n");
-		return 0;
-	}
-
-	// get an appropriate EGL frame buffer configuration
-	EGLint numConfig;
-	EGLConfig config;
-	static const EGLint attributeList[] = {
-		EGL_RED_SIZE, 8,
-		EGL_GREEN_SIZE, 8,
-		EGL_BLUE_SIZE, 8,
-		EGL_ALPHA_SIZE, 8,
-		EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
-		EGL_NONE
-	};
-	result = eglChooseConfig(display, attributeList, &config, 1, &numConfig);
-	if (result == EGL_FALSE) {
-		fprintf(stderr, "eglChooseConfig() failed: EGL_FALSE\n");
-		return 0;
-	}
-
-	result = eglBindAPI(EGL_OPENGL_ES_API);
-	if (result == EGL_FALSE) {
-		fprintf(stderr, "eglBindAPI() failed: EGL_FALSE\n");
-		return 0;
-	}
-
-	// create an EGL rendering context
-	static const EGLint contextAttributes[] = {
-		EGL_CONTEXT_CLIENT_VERSION, 2,
-		EGL_NONE
-	};
-	context = eglCreateContext(display, config, EGL_NO_CONTEXT, contextAttributes);
-	if (context == EGL_NO_CONTEXT) {
-		fprintf(stderr, "eglCreateContext() failed: EGL_NO_CONTEXT\n");
-		return 0;
-	}
-
 	// create an EGL window surface
-	int32_t success = graphics_get_display_size(0, &screenWidth, &screenHeight);
-	if (result < 0) {
-		fprintf(stderr, "graphics_get_display_size() failed: < 0\n");
-		return 0;
-	}
+	// int32_t success = graphics_get_display_size(0, &screenWidth, &screenHeight);
+	// if (result < 0) {
+	// 	fprintf(stderr, "graphics_get_display_size() failed: < 0\n");
+	// 	return 0;
+	// }
 
 	printf( "Width/height: %d/%d\n", screenWidth, screenHeight);
 	if (screenHeight < 600 && video)
 		video->scanLinesEnable = 0;
 
-	VC_RECT_T dstRect;
-	dstRect.x = 0;
-	dstRect.y = 0;
-	dstRect.width = screenWidth;
-	dstRect.height = screenHeight;
-
-	VC_RECT_T srcRect;
-	srcRect.x = 0;
-	srcRect.y = 0;
-	srcRect.width = screenWidth << 16;
-	srcRect.height = screenHeight << 16;
-
-	DISPMANX_DISPLAY_HANDLE_T dispManDisplay = vc_dispmanx_display_open(0);
-	DISPMANX_UPDATE_HANDLE_T dispmanUpdate = vc_dispmanx_update_start(0);
-	DISPMANX_ELEMENT_HANDLE_T dispmanElement = vc_dispmanx_element_add(dispmanUpdate,
-		dispManDisplay, 0, &dstRect, 0, &srcRect,
-		DISPMANX_PROTECTION_NONE, NULL, NULL, DISPMANX_NO_ROTATE);
-
-	nativeWindow.element = dispmanElement;
-	nativeWindow.width = screenWidth;
-	nativeWindow.height = screenHeight;
-	vc_dispmanx_update_submit_sync(dispmanUpdate);
+	SDL_Init(SDL_INIT_EVERYTHING);
 
 	fprintf(stderr, "Initializing window surface...\n");
 
-	surface = eglCreateWindowSurface(display, config, &nativeWindow, NULL);
-	if (surface == EGL_NO_SURFACE) {
-		fprintf(stderr, "eglCreateWindowSurface() failed: EGL_NO_SURFACE\n");
-		return 0;
-	}
+	wnd = SDL_CreateWindow("blueMSX", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
+		640, 480, SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN);
 
 	fprintf(stderr, "Connecting context to surface...\n");
 
 	// connect the context to the surface
-	result = eglMakeCurrent(display, surface, surface, context);
-	if (result == EGL_FALSE) {
-		fprintf(stderr, "eglMakeCurrent() failed: EGL_FALSE\n");
-		return 0;
-	}
+	auto glc = SDL_GL_CreateContext(wnd);
+	auto rdr = SDL_CreateRenderer(wnd, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_TARGETTEXTURE);
 
 	fprintf(stderr, "Initializing shaders...\n");
 
@@ -319,9 +239,7 @@ int piInitVideo()
 
 	// We're doing our own video rendering - this is just so SDL-based keyboard
 	// can work
-	SDL_Init(SDL_INIT_EVERYTHING);
-//    SDL_VideoInit("fbdev", 0);
-	sdlScreen = SDL_SetVideoMode(0, 0, 0, 0);//SDL_ASYNCBLIT);
+	// sdlScreen = SDL_SetVideoMode(0, 0, 0, 0);//SDL_ASYNCBLIT);
     SDL_ShowCursor(SDL_DISABLE);
 	return 1;
 }
@@ -343,14 +261,6 @@ void piDestroyVideo()
 	}
 	
 	// Release OpenGL resources
-	if (display) {
-		eglMakeCurrent(display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
-		eglDestroySurface(display, surface);
-		eglDestroyContext(display, context);
-		eglTerminate(display);
-	}
-
-	bcm_host_deinit();
 }
 
 int width = -1;
@@ -384,7 +294,7 @@ void piUpdateEmuDisplay()
 	videoRender(video, 	frameBuffer, BIT_DEPTH, 1, msxScreen, 0, msxScreenPitch*2, -1);
 //	int borderWidth = ((int)((WIDTH - frameBuffer->maxWidth)  * ZOOM)) >> 1;
 //	if (borderWidth < 0)
-//		borderWidth = 0;
+//		borderWidth	 = 0;
 
 	
 //	videoRender(video, frameBuffer, BIT_DEPTH, 1,
@@ -431,7 +341,8 @@ void piUpdateEmuDisplay()
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-	eglSwapBuffers(display, surface);
+	// eglSwapBuffers(display, surface);
+	SDL_GL_SwapWindow(wnd);
 }
 
 static GLuint createShader(GLenum type, const char *shaderSrc)

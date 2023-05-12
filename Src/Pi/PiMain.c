@@ -198,7 +198,7 @@ static void handleEvent(SDL_Event* event)
 		keyboardUpdate(event);
 		shortcutCheckUp(shortcuts, HOTKEY_TYPE_KEYBOARD, event->key.keysym.mod, event->key.keysym.sym);
 		break;
-	case SDL_ACTIVEEVENT:
+	case SDL_GETEVENT:
 		inputEventReset();
 		break;
 	case SDL_MOUSEBUTTONDOWN:

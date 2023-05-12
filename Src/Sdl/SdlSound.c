@@ -127,10 +127,8 @@ void archSoundCreate(Mixer* mixer, UInt32 sampleRate, UInt32 bufferSize, Int16 c
         return;
     }
 
-	char driver_name[1024];
-	SDL_AudioDriverName(driver_name, 1024);
-	printf("Audio driver: %s\n", driver_name);
-/*	
+	// char driver_name[1024];
+	// printf("Audio driver: %s\n", driver_name);
 	int i;
 	for (i = 0; i < SDL_GetNumAudioDrivers(); ++i) {
 		const char* driver_name = SDL_GetAudioDriver(i);
@@ -139,7 +137,6 @@ void archSoundCreate(Mixer* mixer, UInt32 sampleRate, UInt32 bufferSize, Int16 c
 			continue;
 		}
     }
-*/
 	if (SDL_OpenAudio(&desired, &audioSpec) != 0) {
 		SDL_QuitSubSystem(SDL_INIT_AUDIO);
         return;

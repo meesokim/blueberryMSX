@@ -29,7 +29,7 @@
 
 #include "PiShortcuts.h"
 #include <SDL.h>
-#include <SDL_keysym.h>
+#include <SDL_keyboard.h>
 #include "IniFileParser.h"
 #include "StrcmpNoCase.h"
 #include "Actions.h"
@@ -77,9 +77,9 @@ static int sdlkeys[256] = {
     SDLK_RIGHT,
     SDLK_DOWN,
     0,//SDLK_SELECT,
-    SDLK_PRINT,
+    SDLK_PRINTSCREEN,
     0,//SDLK_EXECUTE,
-    SDLK_PRINT,
+    SDLK_PRINTSCREEN,
     SDLK_INSERT,
     SDLK_DELETE,
     SDLK_HELP,
@@ -126,21 +126,21 @@ static int sdlkeys[256] = {
     'X',
     'Y',
     'Z',
-    SDLK_LMETA ,
-    SDLK_RMETA ,
+    SDLK_LGUI ,
+    SDLK_RGUI ,
     0,//SDLK_APPLICATION ,
     0,
     0,//SDLK_SLEEP,
-    SDLK_KP0,
-    SDLK_KP1,
-    SDLK_KP2,
-    SDLK_KP3,
-    SDLK_KP4,
-    SDLK_KP5,
-    SDLK_KP6,
-    SDLK_KP7,
-    SDLK_KP8,
-    SDLK_KP9,
+    SDLK_KP_0,
+    SDLK_KP_1,
+    SDLK_KP_2,
+    SDLK_KP_3,
+    SDLK_KP_4,
+    SDLK_KP_5,
+    SDLK_KP_6,
+    SDLK_KP_7,
+    SDLK_KP_8,
+    SDLK_KP_9,
     SDLK_KP_MULTIPLY ,
     SDLK_KP_PLUS,
     0,
@@ -681,8 +681,8 @@ ShortcutHotkey toSDLhotkey(ShortcutHotkey hotkey)
 			if (hotkey.mods & KBD_RSHIFT)  sdlmod |= KMOD_RSHIFT;
 			if (hotkey.mods & KBD_LALT)    sdlmod |= KMOD_LALT;
 			if (hotkey.mods & KBD_RALT)    sdlmod |= KMOD_RALT;
-			if (hotkey.mods & KBD_LWIN)    sdlmod |= KMOD_LMETA;
-			if (hotkey.mods & KBD_RWIN)    sdlmod |= KMOD_RMETA; 
+			if (hotkey.mods & KBD_LWIN)    sdlmod |= KMOD_LGUI;
+			if (hotkey.mods & KBD_RWIN)    sdlmod |= KMOD_RGUI; 
 			key = sdlkeys[hotkey.key];
 			break;
 		case HOTKEY_TYPE_JOYSTICK:
@@ -702,8 +702,8 @@ int getMods(int mods)
 	if (mods & KMOD_RSHIFT)  mods0 |= KBD_RSHIFT;
 	if (mods & KMOD_LALT)    mods0 |= KBD_LALT;
 	if (mods & KMOD_RALT)    mods0 |= KBD_RALT;
-	if (mods & KMOD_LMETA)   mods0 |= KBD_LWIN;
-	if (mods & KMOD_RMETA)   mods0 |= KBD_RWIN; 
+	if (mods & KMOD_LGUI)   mods0 |= KBD_LWIN;
+	if (mods & KMOD_RGUI)   mods0 |= KBD_RWIN; 
 	return mods0;
 }
 
@@ -736,7 +736,7 @@ static int stringToHotkey(const char* name)
 {
     int i;
 
-    for (i = 0; i < SDLK_LAST; i++) {
+    for (i = 0; i <= SDLK_SLEEP; i++) {
         char* sdlName = SDL_GetKeyName(i);
         if (0 == strcmpnocase(name, sdlName)) {
             return i;

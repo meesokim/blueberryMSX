@@ -25,33 +25,13 @@
 ******************************************************************************
 */
 
-#include "PiMouse.h"
 #include <SDL.h>
+
+
+#include "PiMouse.h"
 #include "MsxTypes.h"
 #include "ArchInput.h"
 
-
-typedef struct SdlMouse {
-    SDL_Cursor* cursorArrow;
-    SDL_Cursor* cursorCross;
-    AmEnableMode mode;
-    int hasFocus;
-    struct {
-        int top;
-        int left;
-        int bottom;
-        int right;
-    } captRgn;
-    int buttonState;
-    int defX;
-    int defY;
-    int lockDx;
-    int lockDy;
-    int dx;
-    int dy;
-} SdlMouse;
-
-SdlMouse mouse;
 
 static char* arrow[] = {
     "X                               ",
@@ -123,6 +103,28 @@ static char* cross[] = {
     "                                "
 };
 
+typedef struct SdlMouse {
+    int hasFocus;
+    SDL_Cursor* cursorArrow;
+    SDL_Cursor* cursorCross;
+    AmEnableMode mode;
+    struct {
+        int top;
+        int left;
+        int bottom;
+        int right;
+    } captRgn;
+    int buttonState;
+    int defX;
+    int defY;
+    int lockDx;
+    int lockDy;
+    int dx;
+    int dy;
+} SDLMouse;
+
+SDLMouse mouse;
+
 static SDL_Cursor* sdlCreateCursor(const char* image[], int hx, int hy)
 {
     Uint8 data[4 * 32];
@@ -174,7 +176,7 @@ void piMouseInit()
 {
     SDL_ShowCursor(SDL_DISABLE);
     mouse.hasFocus = 1;
-    SDL_WarpMouse(mouse.defX, mouse.defY);
+    SDL_WarpMouseGlobal(mouse.defX, mouse.defY);
 }
 
 void piMouseButton(int button, int pressed)
@@ -217,7 +219,7 @@ void piMouseMove(int x, int y)
         mouse.dx     += dx;
         mouse.dy     += dy;
 
-        SDL_WarpMouse(mouse.defX, mouse.defY);
+        SDL_WarpMouseGlobal(mouse.defX, mouse.defY);
     }
 }
 

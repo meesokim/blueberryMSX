@@ -9,7 +9,7 @@
 #
 # Comment out if verbose comilation is wanted
 #
-#SILENT = ~/tools/arm-bcm2708/arm-rpi-4.9.3-linux-gnueabihf/bin/arm-linux-gnueabihf-
+
 
 #
 # Directories
@@ -17,10 +17,45 @@
 ROOT_DIR   = .
 OUTPUT_DIR = objs
 
+ifdef RASPPI
 BCM_INCDIR= /opt/vc/include
+BCM_LIBDIR= /opt/vc/lib
+SILENT = ~/tools/arm-bcm2708/arm-rpi-4.9.3-linux-gnueabihf/bin/arm-linux-gnueabihf-
+
+COMMON_FLAGS = -DUSE_EGL -DIS_RPI -DLSB_FIRST -DNO_ASM -DNO_HIRES_TIMERS -DNO_FILE_HISTORY -DNO_EMBEDDED_SAMPLES -DUSE_SDL -DRASPI 
+CFLAGS   = -g -w -O3 -ffast-math -fstrict-aliasing -fomit-frame-pointer $(COMMON_FLAGS)
+CPPFLAGS = -g $(COMMON_FLAGS)
+LDFLAGS  =  
+LIBS     =  -lSDL -lz -lbcm_host -lbrcmEGL -lbrcmGLESv2 -lpthread -ludev -lvcos -lbcm2835
+LIBDIR   =  -L$(X11_LIBDIR) -L$(BCM_LIBDIR) 
+# Uncomment the following line to enable GPIO (requires wiring-pi)
+#CFLAGS   += -DRASPI_GPIO
+ifdef RASPI_GPIO
+LIBS     += -lwiringPi
+endif
+
+TARGET   = bluemsx-pi
+
+SDL_CFLAGS := $(shell sdl2-config --cflags)
+SDL_LDFLAGS := $(shell sdl2-config --libs)
+
+else
+
+COMMON_FLAGS = -DUSE_EGL -DLSB_FIRST -DNO_ASM -DNO_HIRES_TIMERS -DNO_FILE_HISTORY -DNO_EMBEDDED_SAMPLES -DUSE_SDL2  
+CFLAGS   = -g -w -O3 -ffast-math -fstrict-aliasing -fomit-frame-pointer $(COMMON_FLAGS)
+CPPFLAGS = -g $(COMMON_FLAGS)
+LDFLAGS  =  
+LIBS     = -lSDL2 -lz -lpthread -ludev -lGLESv2 
+LIBDIR   =  
+
+TARGET   = bluemsx
+
+SDL_CFLAGS := $(shell sdl2-config --cflags)
+SDL_LDFLAGS := $(shell sdl2-config --libs)
+
+endif 
 
 X11_LIBDIR= /usr/X11R6/libx
-BCM_LIBDIR= /opt/vc/lib
 
 #
 # Tools
@@ -34,31 +69,8 @@ MKDIR = $(SILENT)-mkdir
 ECHO  = @echo
 
 #
-# Flags
-#
-COMMON_FLAGS = -DUSE_EGL -DIS_RPI -DLSB_FIRST -DNO_ASM -DNO_HIRES_TIMERS -DNO_FILE_HISTORY -DNO_EMBEDDED_SAMPLES -DUSE_SDL -DRASPI 
-CFLAGS   = -g -w -O3 -ffast-math -fstrict-aliasing -fomit-frame-pointer $(COMMON_FLAGS)
-CPPFLAGS = -g $(COMMON_FLAGS)
-LDFLAGS  =  
-LIBS     =  -lSDL -lz -lbcm_host -lbrcmEGL -lbrcmGLESv2 -lpthread -ludev -lvcos -lbcm2835
-# Uncomment the following line to enable GPIO (requires wiring-pi)
-#CFLAGS   += -DRASPI_GPIO
-
-ifdef RASPI_GPIO
-LIBS     += -lwiringPi
-endif
-
-TARGET   = bluemsx-pi
-
-SRCS        = $(SOURCE_FILES)
-OBJS        = $(patsubst %.rc,%.res,$(patsubst %.cxx,%.o,$(patsubst %.cpp,%.o,$(patsubst %.cc,%.o,$(patsubst %.c,%.o,$(filter %.c %.cc %.cpp %.cxx %.rc,$(SRCS)))))))
-OUTPUT_OBJS = $(addprefix $(OUTPUT_DIR)/, $(OBJS))
-
-#
 # SDL specific flags
 #
-SDL_CFLAGS := $(shell sdl-config --cflags)
-SDL_LDFLAGS := $(shell sdl-config --libs)
 CFLAGS += $(SDL_CFLAGS)
 CPPFLAGS += $(SDL_CFLAGS)
 LDFLAGS += $(SDL_LDFLAGS)
@@ -76,8 +88,10 @@ DEPS := $(OBJS:.o=.d)
 # Include paths
 #
 INCLUDE = 
+ifdef RASPPI 
 INCLUDE += -I/opt/vc/include/interface/vcos/pthreads -I/opt/vc/include/interface/vmcs_host/linux
 INCLUDE += -I$(BCM_INCDIR)
+endif
 INCLUDE += -I$(ROOT_DIR)/Src/Arch
 INCLUDE += -I$(ROOT_DIR)/Src/Bios
 INCLUDE += -I$(ROOT_DIR)/Src/Board
@@ -117,18 +131,22 @@ vpath % $(ROOT_DIR)/Src/Utils
 vpath % $(ROOT_DIR)/Src/VideoChips
 vpath % $(ROOT_DIR)/Src/VideoRender
 vpath % $(ROOT_DIR)/Src/Sdl
-vpath % $(ROOT_DIR)/Src/Pi
 vpath % $(ROOT_DIR)/Src/Z80
+vpath % $(ROOT_DIR)/Src/Pi
+
+# ifdef RASPPI
+# vpath % $(ROOT_DIR)/Src/Pi
+# endif
 
 #
 # Source files
 #
 SOURCE_FILES  =
 
-SOURCE_FILES += PiMain.c
 ifdef RASPI_GPIO
 SOURCE_FILES += PiGpio.c
 endif
+SOURCE_FILES += PiMain.c
 SOURCE_FILES += PiVideo.c
 SOURCE_FILES += PiVideoRender.c
 SOURCE_FILES += PiNotifications.c
@@ -316,7 +334,7 @@ SOURCE_FILES += DirAsDisk.c
 SOURCE_FILES += Disk.c 
 SOURCE_FILES += FdcAudio.c
 SOURCE_FILES += GameReader.c
-SOURCE_FILES += MsxBusPi.c
+# SOURCE_FILES += MsxBusPi.c
 SOURCE_FILES += HarddiskIDE.c
 SOURCE_FILES += I8250.c
 SOURCE_FILES += I8251.c
@@ -425,19 +443,24 @@ SOURCE_FILES += Debugger.c
 
 HEADER_FILES  =
 
+#
+# Flags
+#
+SRCS        = $(SOURCE_FILES)
+OBJS        = $(patsubst %.rc,%.res,$(patsubst %.cxx,%.o,$(patsubst %.cpp,%.o,$(patsubst %.cc,%.o,$(patsubst %.c,%.o,$(filter %.c %.cc %.cpp %.cxx %.rc,$(SRCS)))))))
+OUTPUT_OBJS = $(addprefix $(OUTPUT_DIR)/, $(OBJS))
+
 
 #
 # Rules
 #
-all: $(OUTPUT_DIR) $(TARGET)
+all: $(OUTPUT_DIR) $(TARGET) 
 
 clean: clean_$(TARGET)	
 
-
 $(TARGET): $(OUTPUT_OBJS)
 	$(ECHO) Linking $@...
-	$(LD) -L$(X11_LIBDIR) -L$(BCM_LIBDIR) $(LDFLAGS) -o $@ $(OUTPUT_OBJS) $(LIBS)
-	#cp $(TARGET) ~/blueMSX
+	$(LD) $(LIB_DIR) $(LDFLAGS) -o $@ $(OUTPUT_OBJS) $(LIBS)
 
 clean_$(TARGET):
 	$(ECHO) Cleaning files ...
@@ -447,6 +470,10 @@ clean_$(TARGET):
 $(OUTPUT_DIR):
 	$(ECHO) Creating directory $@...
 	@$(MKDIR) $(OUTPUT_DIR)
+
+$(OUTPUT_DIR)/%.o: %.c  $(HEADER_FILES)
+	$(ECHO) Compiling $<...
+	@$(CC) $(CFLAGS) $(CPPFLAGS) $(INCLUDE) -o $@ -c $<
 
 $(OUTPUT_DIR)/%.o: %.c  $(HEADER_FILES)
 	$(ECHO) Compiling $<...

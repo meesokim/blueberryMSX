@@ -894,7 +894,6 @@ void boardReset()
 {
     if (boardRunning) {
         boardInfo.softReset();
-		msxinit();
     }
 }
 
