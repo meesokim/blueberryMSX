@@ -41,11 +41,11 @@ SDL_LDFLAGS := $(shell sdl2-config --libs)
 
 else
 
-COMMON_FLAGS = -DUSE_EGL -DLSB_FIRST -DNO_ASM -DNO_HIRES_TIMERS -DNO_FILE_HISTORY -DNO_EMBEDDED_SAMPLES -DUSE_SDL2  
+COMMON_FLAGS = -DUSE_EGL -DLSB_FIRST -DNO_FILE_HISTORY -DNO_EMBEDDED_SAMPLES -DUSE_SDL2  
 CFLAGS   = -g -w -O3 -ffast-math -fstrict-aliasing -fomit-frame-pointer $(COMMON_FLAGS)
 CPPFLAGS = -g $(COMMON_FLAGS)
 LDFLAGS  =  
-LIBS     = -lSDL2 -lz -lpthread -ludev -lGLESv2 
+LIBS     = -lz -lpthread -ludev -lGLESv2 
 LIBDIR   =  
 
 TARGET   = bluemsx
@@ -460,7 +460,7 @@ clean: clean_$(TARGET)
 
 $(TARGET): $(OUTPUT_OBJS)
 	$(ECHO) Linking $@...
-	$(LD) $(LIB_DIR) $(LDFLAGS) -o $@ $(OUTPUT_OBJS) $(LIBS)
+	$(LD) -o $@ $(OUTPUT_OBJS) $(LIBS) $(LDFLAGS) $(LIB_DIR)
 
 clean_$(TARGET):
 	$(ECHO) Cleaning files ...
