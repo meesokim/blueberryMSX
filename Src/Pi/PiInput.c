@@ -35,7 +35,7 @@
 #include <stdio.h>
 #include <SDL.h>
 
-static int kbdTable[3][SDLK_SLEEP+1];
+static int kbdTable[3][sizeof(SDL_KeyCode)+1];
 
 static int inputTypeScanStart = 0;
 static int inputTypeScanEnd = 1;
@@ -68,7 +68,11 @@ static void initKbdTable()
 	kbdTable[0][SDLK_COMMA       ] = EC_COMMA;
 	kbdTable[0][SDLK_PERIOD      ] = EC_PERIOD;
 	kbdTable[0][SDLK_SLASH       ] = EC_DIV;
-	kbdTable[0][SDLK_RCTRL       ] = EC_UNDSCRE;
+	kbdTable[0][SDLK_ESCAPE   ] = EC_ESC;
+	kbdTable[0][SDLK_TAB      ] = EC_TAB;
+	kbdTable[0][SDLK_BACKSPACE] = EC_BKSPACE;
+	kbdTable[0][SDLK_RETURN   ] = EC_RETURN;
+	kbdTable[0][SDLK_SPACE    ] = EC_SPACE;
 
 	kbdTable[0][SDLK_a] = EC_A;
 	kbdTable[0][SDLK_b] = EC_B;
@@ -97,18 +101,32 @@ static void initKbdTable()
 	kbdTable[0][SDLK_y] = EC_Y;
 	kbdTable[0][SDLK_z] = EC_Z;
 
+	kbdTable[1][SDLK_SPACE       ] = EC_JOY1_BUTTON1;
+	kbdTable[1][SDLK_LCTRL       ] = EC_JOY1_BUTTON2;
+	kbdTable[1][SDLK_LEFT        ] = EC_JOY1_LEFT;
+	kbdTable[1][SDLK_UP          ] = EC_JOY1_UP;
+	kbdTable[1][SDLK_RIGHT       ] = EC_JOY1_RIGHT;
+	kbdTable[1][SDLK_DOWN        ] = EC_JOY1_DOWN;
+	kbdTable[1][SDLK_0           ] = EC_COLECO1_0;
+	kbdTable[1][SDLK_1           ] = EC_COLECO1_1;
+	kbdTable[1][SDLK_2           ] = EC_COLECO1_2;
+	kbdTable[1][SDLK_3           ] = EC_COLECO1_3;
+	kbdTable[1][SDLK_4           ] = EC_COLECO1_4;
+	kbdTable[1][SDLK_5           ] = EC_COLECO1_5;
+	kbdTable[1][SDLK_6           ] = EC_COLECO1_6;
+	kbdTable[1][SDLK_7           ] = EC_COLECO1_7;
+	kbdTable[1][SDLK_8           ] = EC_COLECO1_8;
+	kbdTable[1][SDLK_9           ] = EC_COLECO1_9;
+	kbdTable[1][SDLK_MINUS       ] = EC_COLECO1_STAR;
+	kbdTable[1][SDLK_EQUALS      ] = EC_COLECO1_HASH;
+
 	kbdTable[0][SDLK_F1       ] = EC_F1;
 	kbdTable[0][SDLK_F2       ] = EC_F2;
 	kbdTable[0][SDLK_F3       ] = EC_F3;
 	kbdTable[0][SDLK_F4       ] = EC_F4;
 	kbdTable[0][SDLK_F5       ] = EC_F5;
-	kbdTable[0][SDLK_ESCAPE   ] = EC_ESC;
-	kbdTable[0][SDLK_TAB      ] = EC_TAB;
 	kbdTable[0][SDLK_PAGEUP   ] = EC_STOP;
-	kbdTable[0][SDLK_BACKSPACE] = EC_BKSPACE;
 	kbdTable[0][SDLK_END      ] = EC_SELECT;
-	kbdTable[0][SDLK_RETURN   ] = EC_RETURN;
-	kbdTable[0][SDLK_SPACE    ] = EC_SPACE;
 	kbdTable[0][SDLK_HOME     ] = EC_CLS;
 	kbdTable[0][SDLK_INSERT   ] = EC_INS;
 	kbdTable[0][SDLK_DELETE   ] = EC_DEL;
@@ -117,6 +135,7 @@ static void initKbdTable()
 	kbdTable[0][SDLK_RIGHT    ] = EC_RIGHT;
 	kbdTable[0][SDLK_DOWN     ] = EC_DOWN;
 
+	kbdTable[0][SDLK_RCTRL       ] = EC_UNDSCRE;
 	kbdTable[0][SDLK_KP_MULTIPLY] = EC_NUMMUL;
 	kbdTable[0][SDLK_KP_PLUS    ] = EC_NUMADD;
 	kbdTable[0][SDLK_KP_DIVIDE  ] = EC_NUMDIV;
@@ -144,25 +163,6 @@ static void initKbdTable()
 	kbdTable[0][SDLK_CAPSLOCK] = EC_CAPS;
 	kbdTable[0][SDLK_KP_ENTER] = EC_PAUSE;
 	kbdTable[0][SDLK_SYSREQ  ] = EC_PRINT;
-
-	kbdTable[1][SDLK_SPACE       ] = EC_JOY1_BUTTON1;
-	kbdTable[1][SDLK_LCTRL       ] = EC_JOY1_BUTTON2;
-	kbdTable[1][SDLK_LEFT        ] = EC_JOY1_LEFT;
-	kbdTable[1][SDLK_UP          ] = EC_JOY1_UP;
-	kbdTable[1][SDLK_RIGHT       ] = EC_JOY1_RIGHT;
-	kbdTable[1][SDLK_DOWN        ] = EC_JOY1_DOWN;
-	kbdTable[1][SDLK_0           ] = EC_COLECO1_0;
-	kbdTable[1][SDLK_1           ] = EC_COLECO1_1;
-	kbdTable[1][SDLK_2           ] = EC_COLECO1_2;
-	kbdTable[1][SDLK_3           ] = EC_COLECO1_3;
-	kbdTable[1][SDLK_4           ] = EC_COLECO1_4;
-	kbdTable[1][SDLK_5           ] = EC_COLECO1_5;
-	kbdTable[1][SDLK_6           ] = EC_COLECO1_6;
-	kbdTable[1][SDLK_7           ] = EC_COLECO1_7;
-	kbdTable[1][SDLK_8           ] = EC_COLECO1_8;
-	kbdTable[1][SDLK_9           ] = EC_COLECO1_9;
-	kbdTable[1][SDLK_MINUS       ] = EC_COLECO1_STAR;
-	kbdTable[1][SDLK_EQUALS      ] = EC_COLECO1_HASH;
 
 	kbdTable[2][SDLK_KP_0     ] = EC_COLECO2_0;
 	kbdTable[2][SDLK_KP_1     ] = EC_COLECO2_1;

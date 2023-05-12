@@ -82,8 +82,6 @@ DEPS := $(OBJS:.o=.d)
 %.o: %.c
 	$(CC) $(CFLAGS) -MM -MF $(patsubst %.o,%.d,$@) -o $@ $<
 
-
-	
 #
 # Include paths
 #
@@ -450,7 +448,6 @@ SRCS        = $(SOURCE_FILES)
 OBJS        = $(patsubst %.rc,%.res,$(patsubst %.cxx,%.o,$(patsubst %.cpp,%.o,$(patsubst %.cc,%.o,$(patsubst %.c,%.o,$(filter %.c %.cc %.cpp %.cxx %.rc,$(SRCS)))))))
 OUTPUT_OBJS = $(addprefix $(OUTPUT_DIR)/, $(OBJS))
 
-
 #
 # Rules
 #
@@ -470,10 +467,6 @@ clean_$(TARGET):
 $(OUTPUT_DIR):
 	$(ECHO) Creating directory $@...
 	@$(MKDIR) $(OUTPUT_DIR)
-
-$(OUTPUT_DIR)/%.o: %.c  $(HEADER_FILES)
-	$(ECHO) Compiling $<...
-	@$(CC) $(CFLAGS) $(CPPFLAGS) $(INCLUDE) -o $@ -c $<
 
 $(OUTPUT_DIR)/%.o: %.c  $(HEADER_FILES)
 	$(ECHO) Compiling $<...
