@@ -43,6 +43,7 @@
 #endif
 #include <SDL.h>
 #include <SDL_opengles2.h>
+#include <GLES/egl.h>
 typedef	struct ShaderInfo {
 	GLuint program;
 	GLint a_position;
@@ -85,11 +86,12 @@ static GLuint textures[2];
 
 static SDL_Surface *sdlScreen;
 
-char *msxScreen = NULL;
+unsigned char *msxScreen = NULL;
 int msxScreenPitch;
 int height;
 
 static const char* vertexShaderSrc =
+	"#version 140\n"
 	"uniform mat4 u_vp_matrix;\n"
 	"uniform bool scanline;\n"
 	"attribute vec4 a_position;\n"
@@ -103,7 +105,8 @@ static const char* vertexShaderSrc =
 	"	v_vColour = in_Colour;\n"
 	"   if (scanline)\n"
 	"	{\n"
-	"   	gl_Position = a_position.x*u_vp_matrix[0] + a_position.y*u_vp_matrix[1] + a_position.z*u_vp_matrix[2] + a_position.w*u_vp_matrix[3];\n"
+	"   	gl_Position = a_position*u_vp_matrix;\n"
+	// "   	gl_Position = a_position.x*u_vp_matrix[0] + a_position.y*u_vp_matrix[1] + a_position.z*u_vp_matrix[2] + a_position.w*u_vp_matrix[3];\n"
 	"   	TEX0.xy = a_position.xy;\n"
 	"	} else {"
 	"		gl_Position = u_vp_matrix * a_position;\n"
@@ -165,6 +168,8 @@ static const GLfloat vertices[] = {
 };
 
 SDL_Window* wnd;
+SDL_GLContext glc;
+SDL_Renderer* rdr;
 int piInitVideo()
 {
 	// create an EGL window surface
@@ -181,15 +186,20 @@ int piInitVideo()
 	SDL_Init(SDL_INIT_EVERYTHING);
 
 	fprintf(stderr, "Initializing window surface...\n");
-
+	SDL_GL_SetAttribute( SDL_GL_CONTEXT_MAJOR_VERSION, 2 );
+	SDL_GL_SetAttribute( SDL_GL_CONTEXT_MINOR_VERSION, 1 );
+	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 	wnd = SDL_CreateWindow("blueMSX", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
 		640, 480, SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN);
 
 	fprintf(stderr, "Connecting context to surface...\n");
-
+	EGLDisplay  glDisplay = eglGetDisplay(EGL_DEFAULT_DISPLAY);
 	// connect the context to the surface
-	auto glc = SDL_GL_CreateContext(wnd);
-	auto rdr = SDL_CreateRenderer(wnd, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_TARGETTEXTURE);
+	glc = SDL_GL_CreateContext(wnd);
+	SDL_GL_MakeCurrent(wnd, glc);
+	glewInit();
+	SDL_GL_SetSwapInterval( 1 );
+	// rdr = SDL_CreateRenderer(wnd, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_TARGETTEXTURE);
 
 	fprintf(stderr, "Initializing shaders...\n");
 
@@ -280,6 +290,7 @@ void piUpdateEmuDisplay()
 		w = (screenWidth - (screenHeight*4/3.0f));
 	if (w < 0) w = 0;
 	glViewport(w/2, 0, screenWidth-w, screenHeight);
+	// glClearColor(1.0f,1.0f/(rand()%255),1.0f,0.0f);
 
 	ShaderInfo *sh = &shader;
 
@@ -297,8 +308,8 @@ void piUpdateEmuDisplay()
 //		borderWidth	 = 0;
 
 	
-//	videoRender(video, frameBuffer, BIT_DEPTH, 1,
-//				msxScreen + borderWidth * BYTES_PER_PIXEL, 0, msxScreenPitch, -1);
+	// videoRender(video, frameBuffer, BIT_DEPTH, 1,
+	// 			msxScreen + borderWidth * BYTES_PER_PIXEL, 0, msxScreenPitch, -1);
 
 	glUniform1i(shader.scanline, video->scanLinesEnable);
 	glActiveTexture(GL_TEXTURE0);
@@ -313,11 +324,11 @@ void piUpdateEmuDisplay()
 	// 	}
 	// }
 
-//	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, WIDTH, HEIGHT,
-//					GL_RGB, GL_UNSIGNED_SHORT_5_6_5, msxScreen);
-
-	glTexSubImage2D(GL_TEXTURE_2D, 0, (WIDTH-msxScreenPitch)/2, 0, msxScreenPitch, height, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, msxScreen);
-//	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, msxScreenPitch, lines, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, msxScreen);
+	// glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, WIDTH, HEIGHT, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, msxScreen);
+	// glTexSubImage2D(GL_TEXTURE_2D, 0, (WIDTH-msxScreenPitch)/2, 0, msxScreenPitch, height, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, msxScreen);
+	for (int i = 0; i < 100; i++)
+		printf("%02x", msxScreen[i + rand() % 100]);
+	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, msxScreenPitch, lines, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, msxScreen);
 	if (frameBufferGetDoubleWidth(frameBuffer, 0) != width || height != frameBuffer->lines)
 	{
 		width = frameBufferGetDoubleWidth(frameBuffer, 0);
@@ -328,7 +339,7 @@ void piUpdateEmuDisplay()
 		float sy = 1.0f * height / HEIGHT;
 //		printf("screen = %x, width = %d, height = %d, double = %d, interlaced = %d\n", msxScreen, msxScreenPitch, height, width, interlace);
 //		printf("sx=%f,sy=%f\n", sx, sy);
-		fflush(stdin);
+		// fflush(stdin);
 		if (sy == 1.0f)
 			setOrtho(projection, -sx/2, sx/2,  sy/2, -sy/2, -0.5f, +0.5f,1,1);		
 		else
@@ -342,6 +353,10 @@ void piUpdateEmuDisplay()
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
 	// eglSwapBuffers(display, surface);
+	// printf("swapWindow\n");
+	// glEnd();
+	// SDL_GL_SwapBuffers();
+	// SDL_RenderPresent(rdr);
 	SDL_GL_SwapWindow(wnd);
 }
 

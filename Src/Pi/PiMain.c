@@ -198,7 +198,8 @@ static void handleEvent(SDL_Event* event)
 		keyboardUpdate(event);
 		shortcutCheckUp(shortcuts, HOTKEY_TYPE_KEYBOARD, event->key.keysym.mod, event->key.keysym.sym);
 		break;
-	case SDL_GETEVENT:
+	// DEPRECATED on sdl2 -- case SDL_ACTIVEEVENT:
+	case SDL_WINDOWEVENT_ENTER:
 		inputEventReset();
 		break;
 	case SDL_MOUSEBUTTONDOWN:

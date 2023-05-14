@@ -477,6 +477,7 @@ void emulatorStart(const char* stateName) {
         archEmulationStartFailure();
     }
 #else
+    // printf("emulatorThread:%x\n", emulatorThread);
     emuThread = archThreadCreate(emulatorThread, THREAD_PRIO_HIGH);
 
     archEventWait(emuStartEvent, 3000);
