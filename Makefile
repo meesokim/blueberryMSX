@@ -21,13 +21,13 @@ ifdef RASPPI
 SILENT = aarch64-linux-gnu-
 BCM_INCDIR= /usr/$(SILENT)
 BCM_LIBDIR= /usr/$(SILENT)/lib
-AARCH64=/home/msx/rpi/mnt64
+AARCH64=/
 
 COMMON_FLAGS = -DUSE_EGL -DIS_RPI -DLSB_FIRST -DNO_ASM -DNO_HIRES_TIMERS -DNO_FILE_HISTORY -DNO_EMBEDDED_SAMPLES -DUSE_SDL -DRASPI 
-CFLAGS   = -g -w -O3 -ffast-math -fstrict-aliasing -fomit-frame-pointer $(COMMON_FLAGS) --sysroot=$(AARCH64) 
+CFLAGS   = -g -w -O3 -ffast-math -fstrict-aliasing -fomit-frame-pointer $(COMMON_FLAGS) 
 CPPFLAGS = -g $(COMMON_FLAGS)
 LDFLAGS  =  
-LIBS     =  -lSDL -lz -lbcm_host -lbrcmEGL -lbrcmGLESv2 -lpthread -ludev -lvcos -lbcm2835
+LIBS     =  -lSDL2 -lz -lpthread -ludev -lGL -lGLESv2 -lbcm2835
 LIBDIR   =  -L$(X11_LIBDIR) -L$(BCM_LIBDIR) 
 # Uncomment the following line to enable GPIO (requires wiring-pi)
 #CFLAGS   += -DRASPI_GPIO
