@@ -359,11 +359,10 @@ static int emuStartWithArguments(Properties* properties, char* commandLine, char
 		printf("argument:%s cmdline:%s\n", argument, cmdLine);
         if (checkArg(argument, "rom1")) {
             argument = extractTokenEx(cmdLine, ++i, gamedir);
-            if (argument == NULL || !isRomFileType(argument, rom1zip)) return 0; // Invaid argument
-//			if (!msx_pack_check())
-				strcpy(rom1, argument);
-//			else
-//				romType1 = ROM_MSXBUS;
+            printf("argument:%s\n", argument);
+            // if (argument == NULL || !isRomFileType(argument, rom1zip)) return 0; // Invaid argument
+            strcpy(rom1, argument);
+            printf("rom1: %s\n", rom1);
             startEmu = 1;
         }
         if (checkArg(argument, "rom1zip")) {
@@ -375,8 +374,8 @@ static int emuStartWithArguments(Properties* properties, char* commandLine, char
             argument = extractToken(cmdLine, ++i);
             if (argument == NULL) return 0; // Invaid argument
             romType1 = romNameToType(argument);
+			printf("romType1: %s, %d\n", argument, romType1);            
             startEmu = 1;
-			printf("romtype=%d\n", romType1);
         }
         if (checkArg(argument, "rom2")) {
             argument = extractTokenEx(cmdLine, ++i, gamedir);
@@ -530,6 +529,7 @@ static int emuStartWithArguments(Properties* properties, char* commandLine, char
 
     if (properties->cassette.rewindAfterInsert) tapeRewindNextInsert();
 
+    printf("!rom1:%s\n", rom1);
     if (strlen(rom1)  && !insertCartridge(properties, 0, rom1, *rom1zip ? rom1zip : NULL, romType1, -1)) return 0;
     if (strlen(rom2)  && !insertCartridge(properties, 1, rom2, *rom2zip ? rom2zip : NULL, romType2, -1)) return 0;
     if (strlen(diskA) && !insertDiskette(properties, 0, diskA, *diskAzip ? diskAzip : NULL, -1)) return 0;

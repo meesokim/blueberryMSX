@@ -46,7 +46,7 @@ COMMON_FLAGS = -DUSE_EGL -DLSB_FIRST -DNO_FILE_HISTORY -DNO_EMBEDDED_SAMPLES -DU
 CFLAGS   = -g -w -O3 -ffast-math -fstrict-aliasing -fomit-frame-pointer $(COMMON_FLAGS)
 CPPFLAGS = -g $(COMMON_FLAGS)
 LDFLAGS  =  
-LIBS     = -lz -lpthread -ludev -lGL -lGLEW -lEGL
+LIBS     = -lz -lpthread -ludev -lGL -lGLEW -lEGL -ldl
 LIBDIR   =  
 
 TARGET   = bluemsx
@@ -308,6 +308,7 @@ SOURCE_FILES += romMapperSg1000RamExpander.c
 SOURCE_FILES += romMapperDooly.c
 SOURCE_FILES += romMapperMuPack.c
 SOURCE_FILES += romMapperMsxBus.c
+SOURCE_FILES += zmx.cc
 
 SOURCE_FILES += Crc32Calc.c
 SOURCE_FILES += MediaDb.cpp

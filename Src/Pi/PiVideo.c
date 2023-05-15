@@ -93,7 +93,7 @@ int msxScreenPitch;
 int height;
 
 static const char* vertexShaderSrc =
-	"#version 130\n"
+	"#version 120\n"
 	"uniform mat4 u_vp_matrix;\n"
 	"uniform bool scanline;\n"
 	"attribute vec4 a_position;\n"
@@ -116,7 +116,7 @@ static const char* vertexShaderSrc =
 	"}\n";
 	
 static const char* fragmentShaderSrc =
-	"#version 130\n"
+	"#version 120\n"
 	"varying  vec2 v_texcoord;\n"
 	"uniform bool scanline;\n"
 	"uniform sampler2D u_texture;\n"
@@ -242,6 +242,7 @@ int piInitVideo()
 		return 0;
 	}
 	fprintf(stderr, "Initializing shaders...\n");
+	return 1;
 
 	// Init shader resources
 	memset(&shader, 0, sizeof(ShaderInfo));

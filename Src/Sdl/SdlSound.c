@@ -136,6 +136,7 @@ void archSoundCreate(Mixer* mixer, UInt32 sampleRate, UInt32 bufferSize, Int16 c
 			printf("Audio driver failed to initialize: %s\n", driver_name);
 			continue;
 		}
+        printf("Audio driver initialized: %s\n", driver_name);
     }
 	if (SDL_OpenAudio(&desired, &audioSpec) != 0) {
 		SDL_QuitSubSystem(SDL_INIT_AUDIO);
@@ -149,7 +150,7 @@ void archSoundCreate(Mixer* mixer, UInt32 sampleRate, UInt32 bufferSize, Int16 c
 	printf ("size:%d(%d)\n", desired.size, audioSpec.size);
 	
     sdlSound.bufferSize = 5;
-    while (sdlSound.bufferSize < 4 * audioSpec.size) sdlSound.bufferSize *= 2;
+    while (sdlSound.bufferSize < 8 * audioSpec.size) sdlSound.bufferSize *= 2;
 	sdlSound.bufferSize = audioSpec.size * 4;
 	printf ("size:%d\n", sdlSound.bufferSize);
     sdlSound.bufferMask = sdlSound.bufferSize - 1;
