@@ -309,18 +309,6 @@ void piDestroyVideo()
 
 static void draw() {
 
-	/* Framebuffer filling is just an example.
-		It creates an interesting image.
-		The code only works on a little-endian machine,
-		but just to make the formula look simple. */
-
-	// float t = SDL_GetTicks() * 0x1p-4f; // smaller multiplier -> faster animation
-	// uint32_t fb[FbTexH * FbTexW];
-	// for (int i = 0; i < FbH; ++i) {
-	// 	for (int j = 0; j < FbW; ++j) {
-	// 		fb[i * FbTexW + j] = (int)((i + t) * (j + t)) | 0xff000000;
-	// 	}
-	// }
 	FrameBuffer* frameBuffer = frameBufferFlipViewFrame(properties->emulation.syncMethod == P_EMU_SYNCTOVBLANKASYNC);
 	if (frameBuffer == NULL) {
 		frameBuffer = frameBufferGetWhiteNoiseFrame();
@@ -332,11 +320,12 @@ static void draw() {
 		msxScreenPitch = frameBuffer->maxWidth * (width+1);//(256+16)*(width+1);
 		printf("width: %d, w:%d, h:%d\n", width, msxScreenPitch, height);
 	}	
-	videoRender(video, 	frameBuffer, BIT_DEPTH, 1, msxScreen, 0, msxScreenPitch*2, -1);	
-	TexCoord[2] = TexCoord[6] =  (msxScreenPitch + 100.0f) / TEX_WIDTH;
+	videoRender(video, 	frameBuffer, BIT_DEPTH, 1, msxScreen, 0, msxScreenPitch*2, -1);
+
+	// TexCoord[2] = TexCoord[6] =  (msxScreenPitch + 100.0f) / TEX_WIDTH;
 	// glTexCoordPointer(2, GL_FLOAT, 0, TexCoord);
 	// TexCoord[0] = TexCoord[4] = 2;
-	// VertexCoord[2] = VertexCoord[6] = msxScreenPitch/WIDTH;
+	VertexCoord[2] = VertexCoord[6] = TEX_WIDTH * TEX_WIDTH / msxScreenPitch;
 	// glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, FbTexW, FbTexH, GL_BGRA_EXT, GL_UNSIGNED_BYTE, frameBuffer);	
 	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, msxScreenPitch, height, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, msxScreen);
 	// glClear(GL_COLOR_BUFFER_BIT);
@@ -356,43 +345,15 @@ void piUpdateEmuDisplay2()
 		fprintf(stderr, "Shader not initialized\n");
 		return;
 	}
-	// SDL_GL_MakeCurrent(wnd, glc);
-	// glRotatef(0.4f,0.0f,1.0f,0.0f); 
-	// glColor3f(0.0f,1.0f,0.0f); 		
 	if (properties->video.force4x3ratio)
 		w = (screenWidth - (screenHeight*4/3.0f));
 	if (w < 0) w = 0;
-	// glViewport(w/2, 0, screenWidth-w, screenHeight);
-
-	// ShaderInfo *sh = &shader;
-	// SDL_Rect r;
-	// r.x = 32; r.y = 32;
-	// r.w = 32; r.h = 32;
-	// SDL_RenderClear(rdr);
-	// SDL_SetRenderDrawColor(rdr, 255, 255, 0, 255);
-	// SDL_Texture *tex = SDL_CreateTexture(rdr, SDL_PIXELFORMAT_RGB565, SDL_TEXTUREACCESS_TARGET, r.w, r.h);
-	// SDL_SetRenderTarget(rdr, tex);
-	// // SDL_RenderFillRect(rdr, &r);
-	// SDL_SetRenderTarget(rdr, NULL);
-	// SDL_RenderPresent(rdr);
-	// glEnable(GL_TEXTURE_2D);
-	// glDisable(GL_BLEND);
-	// glUseProgram(sh->program);
 
 	// FrameBuffer* frameBuffer;
 	FrameBuffer* frameBuffer = frameBufferFlipViewFrame(properties->emulation.syncMethod == P_EMU_SYNCTOVBLANKASYNC);
 	if (frameBuffer == NULL) {
 		frameBuffer = frameBufferGetWhiteNoiseFrame();
 	}
-	// glUniform1i(shader.scanline, video->scanLinesEnable);
-	// glActiveTexture(GL_TEXTURE0);
-	// glBindTexture(GL_TEXTURE_2D, textures[0]);
-	// glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, WIDTH, HEIGHT, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, msxScreen);
-	// glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, msxScreenPitch, height, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, msxScreen);
-	// printf("msxScreenPitch:%d\r", msxScreenPitch);
-	// for (int i = 0; i < 100; i++)
-	// 	printf("%02x", msxScreen[i + rand() % 100]);
-	// glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, msxScreenPitch, lines, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, msxScreen);
 	if (frameBufferGetDoubleWidth(frameBuffer, 0) != width || height != frameBuffer->lines)
 	{
 		width = frameBufferGetDoubleWidth(frameBuffer, 0);
@@ -418,29 +379,8 @@ void piUpdateEmuDisplay2()
 	return;	
 	glClear(GL_COLOR_BUFFER_BIT);
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);						
-	// glClear(GL_COLOR_BUFFER_BIT);
-	// // glUniform1i(glGetUniformLocation(shader, "texture1"), 0);	
-	// // glBegin(GL_QUADS);
-	// drawQuad(sh);
-    // // glTexCoord2i(0,0); glVertex2i(0,height);  //you should probably change these vertices.
-    // // glTexCoord2i(0,1); glVertex2i(0,0);
-    // // glTexCoord2i(1,1); glVertex2i(width,0);
-    // // glTexCoord2i(1,0); glVertex2i(width,height);	
-	// glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-	// // glFlush();	
-	// // glDrawArrays (GL_QUADS, 0, 4);
-	// glBindBuffer(GL_ARRAY_BUFFER, 0);
-	// glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-	// glClearColor(1.0f,1.0f/(rand()%255),1.0f,0.0f);
-	// SDL_RenderCopy (renderer, textures[0], NULL, &)
-	// eglSwapBuffers(display, surface);
-	// printf("swapWindow\n");
-	// glEnd();
-	// SDL_GL_SwapBuffers();
-	// SDL_RenderPresent(rdr);
 
 	glDisable(GL_TEXTURE_2D);
-	// SDL_GL_SwapWindow(wnd);
 }
 
 static GLuint createShader(GLenum type, const char *shaderSrc)
