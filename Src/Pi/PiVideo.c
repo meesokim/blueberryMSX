@@ -333,7 +333,7 @@ static void draw() {
 		printf("width: %d, w:%d, h:%d\n", width, msxScreenPitch, height);
 	}	
 	videoRender(video, 	frameBuffer, BIT_DEPTH, 1, msxScreen, 0, msxScreenPitch*2, -1);	
-	TexCoord[2] = TexCoord[6] =  (msxScreenPitch + 100.0f) / TEX_WIDTH;
+	// TexCoord[2] = TexCoord[6] =  (msxScreenPitch + 100.0f) / TEX_WIDTH;
 	// glTexCoordPointer(2, GL_FLOAT, 0, TexCoord);
 	// TexCoord[0] = TexCoord[4] = 2;
 	// VertexCoord[2] = VertexCoord[6] = msxScreenPitch/WIDTH;
