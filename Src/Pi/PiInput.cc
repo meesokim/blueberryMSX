@@ -41,7 +41,7 @@ extern "C"
 #include <stdio.h>
 #include <SDL.h>
 
-static int kbdTable[3][sizeof(SDL_KeyCode)+1];
+static int kbdTable[3][sizeof(SDL_Keycode)+1];
 
 static int inputTypeScanStart = 0;
 static int inputTypeScanEnd = 1;

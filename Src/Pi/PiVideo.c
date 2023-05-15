@@ -31,6 +31,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <assert.h>
 
 #include "Properties.h"
 #include "VideoRender.h"
@@ -40,9 +41,10 @@
 #include <interface/vchiq_arm/vchiq_if.h>
 #include <EGL/egl.h>
 #include <GLES2/gl2.h>
+#include <SDL_opengles2.h>
 #endif
 #include <SDL.h>
-#include <SDL_opengles2.h>
+#include <SDL_opengl.h>
 #include <GLES/egl.h>
 typedef	struct ShaderInfo {
 	GLuint program;
@@ -53,13 +55,13 @@ typedef	struct ShaderInfo {
 	GLboolean scanline;
 } ShaderInfo;
 
-#define	TEX_WIDTH  600
-#define	TEX_HEIGHT 480
+#define	TEX_WIDTH  544
+#define	TEX_HEIGHT 240
 
 #define BIT_DEPTH       16
 #define BYTES_PER_PIXEL (BIT_DEPTH >> 3)
 #define ZOOM            1
-#define	WIDTH           544
+#define	WIDTH           640
 #define	HEIGHT          480
 
 #define	minU 0.0f
@@ -82,7 +84,7 @@ uint32_t screenHeight = 0;
 
 static ShaderInfo shader;
 static GLuint buffers[3];
-static GLuint textures[2];
+static GLuint textures[1];
 
 static SDL_Surface *sdlScreen;
 
@@ -91,7 +93,7 @@ int msxScreenPitch;
 int height;
 
 static const char* vertexShaderSrc =
-	"#version 140\n"
+	"#version 130\n"
 	"uniform mat4 u_vp_matrix;\n"
 	"uniform bool scanline;\n"
 	"attribute vec4 a_position;\n"
@@ -114,6 +116,7 @@ static const char* vertexShaderSrc =
 	"}\n";
 	
 static const char* fragmentShaderSrc =
+	"#version 130\n"
 	"varying  vec2 v_texcoord;\n"
 	"uniform bool scanline;\n"
 	"uniform sampler2D u_texture;\n"
@@ -155,8 +158,8 @@ static const GLushort indices[] = {
 	0, 2, 3,
 };
 
-static const int kVertexCount = 4;
-static const int kIndexCount = 6;
+#define kVertexCount 4
+#define kIndexCount 6
 
 static float projection[4][4];
 
@@ -170,37 +173,74 @@ static const GLfloat vertices[] = {
 SDL_Window* wnd;
 SDL_GLContext glc;
 SDL_Renderer* rdr;
+
+// #define WindowW 800
+// #define WindowH 600
+// #define FbW 320
+// #define FbH 240
+// #define FbTexW 0x200
+// #define FbTexH 0x100
+static float VertexCoord[] = {0, 0, TEX_WIDTH, 0, 0, TEX_HEIGHT, TEX_WIDTH, TEX_HEIGHT};
+static float TexCoord[] = {0, 0, 1, 0, 0, 0.95, 1, 0.95};
+int width = -1;
+int lines = -1;
+int interlace = -1;
+
+static void initGL() {
+	glEnable(GL_TEXTURE_2D);
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+	// glClearColor(0, 0, 0, 0);
+	glShadeModel(GL_FLAT);
+	glOrtho(0, TEX_WIDTH, TEX_HEIGHT, 0, 1, -1);
+	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+	// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 544, 240, 0, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, 0);
+	glVertexPointer(2, GL_FLOAT, 0, VertexCoord);
+	glTexCoordPointer(2, GL_FLOAT, 0, TexCoord);
+}
+
 int piInitVideo()
 {
-	// create an EGL window surface
-	// int32_t success = graphics_get_display_size(0, &screenWidth, &screenHeight);
-	// if (result < 0) {
-	// 	fprintf(stderr, "graphics_get_display_size() failed: < 0\n");
-	// 	return 0;
-	// }
-
 	printf( "Width/height: %d/%d\n", screenWidth, screenHeight);
 	if (screenHeight < 600 && video)
 		video->scanLinesEnable = 0;
 
-	SDL_Init(SDL_INIT_EVERYTHING);
+	SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO);
+    SDL_ShowCursor(SDL_DISABLE);
+	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
 	fprintf(stderr, "Initializing window surface...\n");
-	SDL_GL_SetAttribute( SDL_GL_CONTEXT_MAJOR_VERSION, 2 );
-	SDL_GL_SetAttribute( SDL_GL_CONTEXT_MINOR_VERSION, 1 );
-	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+	// SDL_GL_SetAttribute( SDL_GL_CONTEXT_MAJOR_VERSION, 2 );
+	// SDL_GL_SetAttribute( SDL_GL_CONTEXT_MINOR_VERSION, 1 );
+	// SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 	wnd = SDL_CreateWindow("blueMSX", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-		640, 480, SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN);
+		640, 480, SDL_WINDOW_OPENGL | SDL_WINDOW_BORDERLESS | SDL_WINDOW_INPUT_GRABBED);
 
 	fprintf(stderr, "Connecting context to surface...\n");
-	EGLDisplay  glDisplay = eglGetDisplay(EGL_DEFAULT_DISPLAY);
 	// connect the context to the surface
 	glc = SDL_GL_CreateContext(wnd);
-	SDL_GL_MakeCurrent(wnd, glc);
-	glewInit();
-	SDL_GL_SetSwapInterval( 1 );
+	assert(glc);
+	// SDL_GL_MakeCurrent(wnd, glc);
+	// glewInit();
+	// SDL_GL_SetSwapInterval( 1 );
+	if( SDL_GL_SetSwapInterval( 1 ) < 0 )
+	{
+		printf( "Warning: Unable to set VSync! SDL Error: %s\n", SDL_GetError() );
+	}	
+	// return;	
 	// rdr = SDL_CreateRenderer(wnd, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_TARGETTEXTURE);
-
+	// SDL_SetRenderDrawColor(rdr, 0xff, 0, 0, 0xff);
+	initGL();
+	msxScreen = (char*)calloc(1, BIT_DEPTH / 8 * TEX_WIDTH * TEX_HEIGHT);
+	if (!msxScreen) {
+		fprintf(stderr, "Error allocating screen texture\n");
+		memset(msxScreen, BIT_DEPTH / 8 * TEX_WIDTH * TEX_HEIGHT, 0xf0);
+		return 0;
+	}
 	fprintf(stderr, "Initializing shaders...\n");
 
 	// Init shader resources
@@ -218,10 +258,11 @@ int piInitVideo()
 	shader.u_vp_matrix	= glGetUniformLocation(shader.program,	"u_vp_matrix");
 	shader.u_texture	= glGetUniformLocation(shader.program,	"u_texture");
 	shader.scanline		= glGetUniformLocation(shader.program,  "scanline");
-	
+
+	glEnable(GL_TEXTURE_2D);
 	glGenTextures(1, textures);
-	glBindTexture(GL_TEXTURE_2D, textures[0]);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, TEX_WIDTH, TEX_HEIGHT, 0, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, NULL);
+	// glBindTexture(GL_TEXTURE_2D, textures[0]);
+	// glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, TEX_WIDTH, TEX_HEIGHT, 0, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, msxScreen);
 
 	glGenBuffers(3, buffers);
 	glBindBuffer(GL_ARRAY_BUFFER, buffers[0]);
@@ -233,24 +274,17 @@ int piInitVideo()
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, kIndexCount * sizeof(GL_UNSIGNED_SHORT), indices, GL_STATIC_DRAW);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	// glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glDisable(GL_DEPTH_TEST);
 	glDisable(GL_DITHER);
 
 //	fprintf(stderr, "Setting up screen...\n");
-
-	msxScreen = (char*)calloc(1, BIT_DEPTH / 8 * TEX_WIDTH * TEX_HEIGHT);
-	if (!msxScreen) {
-		fprintf(stderr, "Error allocating screen texture\n");
-		return 0;
-	}
 
 	fprintf(stderr, "Initializing SDL video...\n");
 
 	// We're doing our own video rendering - this is just so SDL-based keyboard
 	// can work
 	// sdlScreen = SDL_SetVideoMode(0, 0, 0, 0);//SDL_ASYNCBLIT);
-    SDL_ShowCursor(SDL_DISABLE);
 	return 1;
 }
 
@@ -273,62 +307,92 @@ void piDestroyVideo()
 	// Release OpenGL resources
 }
 
-int width = -1;
-int lines = -1;
-int interlace = -1;
+static void draw() {
+
+	/* Framebuffer filling is just an example.
+		It creates an interesting image.
+		The code only works on a little-endian machine,
+		but just to make the formula look simple. */
+
+	// float t = SDL_GetTicks() * 0x1p-4f; // smaller multiplier -> faster animation
+	// uint32_t fb[FbTexH * FbTexW];
+	// for (int i = 0; i < FbH; ++i) {
+	// 	for (int j = 0; j < FbW; ++j) {
+	// 		fb[i * FbTexW + j] = (int)((i + t) * (j + t)) | 0xff000000;
+	// 	}
+	// }
+	FrameBuffer* frameBuffer = frameBufferFlipViewFrame(properties->emulation.syncMethod == P_EMU_SYNCTOVBLANKASYNC);
+	if (frameBuffer == NULL) {
+		frameBuffer = frameBufferGetWhiteNoiseFrame();
+	}
+	if (frameBufferGetDoubleWidth(frameBuffer, 0) != width || height != frameBuffer->lines)
+	{
+		width = frameBufferGetDoubleWidth(frameBuffer, 0);
+		height = frameBuffer->lines;
+		msxScreenPitch = frameBuffer->maxWidth * (width+1);//(256+16)*(width+1);
+		printf("width: %d, w:%d, h:%d\n", width, msxScreenPitch, height);
+	}	
+	videoRender(video, 	frameBuffer, BIT_DEPTH, 1, msxScreen, 0, msxScreenPitch*2, -1);	
+	TexCoord[2] = TexCoord[6] =  (msxScreenPitch + 100.0f) / TEX_WIDTH;
+	// glTexCoordPointer(2, GL_FLOAT, 0, TexCoord);
+	// TexCoord[0] = TexCoord[4] = 2;
+	// VertexCoord[2] = VertexCoord[6] = msxScreenPitch/WIDTH;
+	// glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, FbTexW, FbTexH, GL_BGRA_EXT, GL_UNSIGNED_BYTE, frameBuffer);	
+	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, msxScreenPitch, height, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, msxScreen);
+	// glClear(GL_COLOR_BUFFER_BIT);
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+}
+
 
 void piUpdateEmuDisplay()
+{
+	draw();
+	SDL_GL_SwapWindow(wnd);
+}
+void piUpdateEmuDisplay2()
 {
 	int w = 0;
 	if (!shader.program) {
 		fprintf(stderr, "Shader not initialized\n");
 		return;
 	}
-
-	glClear(GL_COLOR_BUFFER_BIT);
+	// SDL_GL_MakeCurrent(wnd, glc);
+	// glRotatef(0.4f,0.0f,1.0f,0.0f); 
+	// glColor3f(0.0f,1.0f,0.0f); 		
 	if (properties->video.force4x3ratio)
 		w = (screenWidth - (screenHeight*4/3.0f));
 	if (w < 0) w = 0;
-	glViewport(w/2, 0, screenWidth-w, screenHeight);
-	// glClearColor(1.0f,1.0f/(rand()%255),1.0f,0.0f);
+	// glViewport(w/2, 0, screenWidth-w, screenHeight);
 
-	ShaderInfo *sh = &shader;
+	// ShaderInfo *sh = &shader;
+	// SDL_Rect r;
+	// r.x = 32; r.y = 32;
+	// r.w = 32; r.h = 32;
+	// SDL_RenderClear(rdr);
+	// SDL_SetRenderDrawColor(rdr, 255, 255, 0, 255);
+	// SDL_Texture *tex = SDL_CreateTexture(rdr, SDL_PIXELFORMAT_RGB565, SDL_TEXTUREACCESS_TARGET, r.w, r.h);
+	// SDL_SetRenderTarget(rdr, tex);
+	// // SDL_RenderFillRect(rdr, &r);
+	// SDL_SetRenderTarget(rdr, NULL);
+	// SDL_RenderPresent(rdr);
+	// glEnable(GL_TEXTURE_2D);
+	// glDisable(GL_BLEND);
+	// glUseProgram(sh->program);
 
-	glDisable(GL_BLEND);
-	glUseProgram(sh->program);
-
-	FrameBuffer* frameBuffer;
-	frameBuffer = frameBufferFlipViewFrame(properties->emulation.syncMethod == P_EMU_SYNCTOVBLANKASYNC);
+	// FrameBuffer* frameBuffer;
+	FrameBuffer* frameBuffer = frameBufferFlipViewFrame(properties->emulation.syncMethod == P_EMU_SYNCTOVBLANKASYNC);
 	if (frameBuffer == NULL) {
 		frameBuffer = frameBufferGetWhiteNoiseFrame();
 	}
-	videoRender(video, 	frameBuffer, BIT_DEPTH, 1, msxScreen, 0, msxScreenPitch*2, -1);
-//	int borderWidth = ((int)((WIDTH - frameBuffer->maxWidth)  * ZOOM)) >> 1;
-//	if (borderWidth < 0)
-//		borderWidth	 = 0;
-
-	
-	// videoRender(video, frameBuffer, BIT_DEPTH, 1,
-	// 			msxScreen + borderWidth * BYTES_PER_PIXEL, 0, msxScreenPitch, -1);
-
-	glUniform1i(shader.scanline, video->scanLinesEnable);
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, textures[0]);
-
-	// if (borderWidth > 0) {
-	// 	int h = height;
-	// 	while (h--) {
-	// 		memset(dpyData, 0, borderWidth * BYTES_PER_PIXEL);
-	// 		memset(dpyData + (width - borderWidth) * BYTES_PER_PIXEL, 0, borderWidth * BYTES_PER_PIXEL);
-	// 		dpyData += msxScreenPitch;
-	// 	}
-	// }
-
+	// glUniform1i(shader.scanline, video->scanLinesEnable);
+	// glActiveTexture(GL_TEXTURE0);
+	// glBindTexture(GL_TEXTURE_2D, textures[0]);
 	// glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, WIDTH, HEIGHT, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, msxScreen);
-	// glTexSubImage2D(GL_TEXTURE_2D, 0, (WIDTH-msxScreenPitch)/2, 0, msxScreenPitch, height, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, msxScreen);
-	for (int i = 0; i < 100; i++)
-		printf("%02x", msxScreen[i + rand() % 100]);
-	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, msxScreenPitch, lines, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, msxScreen);
+	// glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, msxScreenPitch, height, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, msxScreen);
+	// printf("msxScreenPitch:%d\r", msxScreenPitch);
+	// for (int i = 0; i < 100; i++)
+	// 	printf("%02x", msxScreen[i + rand() % 100]);
+	// glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, msxScreenPitch, lines, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, msxScreen);
 	if (frameBufferGetDoubleWidth(frameBuffer, 0) != width || height != frameBuffer->lines)
 	{
 		width = frameBufferGetDoubleWidth(frameBuffer, 0);
@@ -337,27 +401,46 @@ void piUpdateEmuDisplay()
 		interlace = frameBuffer->interlace;
 		float sx = 1.0f * msxScreenPitch/WIDTH;
 		float sy = 1.0f * height / HEIGHT;
-//		printf("screen = %x, width = %d, height = %d, double = %d, interlaced = %d\n", msxScreen, msxScreenPitch, height, width, interlace);
+		printf("screen = %x, width = %d, height = %d, double = %d, interlaced = %d\n", msxScreen, msxScreenPitch, height, width, interlace);
 //		printf("sx=%f,sy=%f\n", sx, sy);
 		// fflush(stdin);
-		if (sy == 1.0f)
-			setOrtho(projection, -sx/2, sx/2,  sy/2, -sy/2, -0.5f, +0.5f,1,1);		
-		else
-			setOrtho(projection, -sx/2, sx/2,    0,   -sy, -0.5f, +0.5f,1,1);		
-		//setOrtho(projection, -1, 1,    1,   -1, -0.5f, +0.5f,1,1);		
-		glUniformMatrix4fv(sh->u_vp_matrix, 1, GL_FALSE, projection);
-	}					
-	drawQuad(sh);
-
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
+		// if (sy == 1.0f)
+		// 	setOrtho(projection, -sx/2, sx/2,  sy/2, -sy/2, -0.5f, +0.5f,1,1);		
+		// else
+		// 	setOrtho(projection, -sx/2, sx/2,    0,   -sy, -0.5f, +0.5f,1,1);		
+		// // setOrtho(projection, -1, 1,    1,   -1, -0.5f, +0.5f,1,1);		
+		// glUniformMatrix4fv(sh->u_vp_matrix, 1, GL_FALSE, projection);
+	}
+	videoRender(video, 	frameBuffer, BIT_DEPTH, 1, msxScreen, 0, msxScreenPitch*2, -1);
+	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, msxScreenPitch, height, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, msxScreen);
+	glClear(GL_COLOR_BUFFER_BIT);
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+	return;	
+	glClear(GL_COLOR_BUFFER_BIT);
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);						
+	// glClear(GL_COLOR_BUFFER_BIT);
+	// // glUniform1i(glGetUniformLocation(shader, "texture1"), 0);	
+	// // glBegin(GL_QUADS);
+	// drawQuad(sh);
+    // // glTexCoord2i(0,0); glVertex2i(0,height);  //you should probably change these vertices.
+    // // glTexCoord2i(0,1); glVertex2i(0,0);
+    // // glTexCoord2i(1,1); glVertex2i(width,0);
+    // // glTexCoord2i(1,0); glVertex2i(width,height);	
+	// glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+	// // glFlush();	
+	// // glDrawArrays (GL_QUADS, 0, 4);
+	// glBindBuffer(GL_ARRAY_BUFFER, 0);
+	// glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	// glClearColor(1.0f,1.0f/(rand()%255),1.0f,0.0f);
+	// SDL_RenderCopy (renderer, textures[0], NULL, &)
 	// eglSwapBuffers(display, surface);
 	// printf("swapWindow\n");
 	// glEnd();
 	// SDL_GL_SwapBuffers();
 	// SDL_RenderPresent(rdr);
-	SDL_GL_SwapWindow(wnd);
+
+	glDisable(GL_TEXTURE_2D);
+	// SDL_GL_SwapWindow(wnd);
 }
 
 static GLuint createShader(GLenum type, const char *shaderSrc)
@@ -461,7 +544,7 @@ static void drawQuad(const ShaderInfo *sh)
 {
 	glUniform1i(sh->u_texture, 0);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
 	glBindBuffer(GL_ARRAY_BUFFER, buffers[0]);
 	glVertexAttribPointer(sh->a_position, 3, GL_FLOAT,

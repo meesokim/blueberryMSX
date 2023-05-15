@@ -46,7 +46,7 @@ COMMON_FLAGS = -DUSE_EGL -DLSB_FIRST -DNO_FILE_HISTORY -DNO_EMBEDDED_SAMPLES -DU
 CFLAGS   = -g -w -O3 -ffast-math -fstrict-aliasing -fomit-frame-pointer $(COMMON_FLAGS)
 CPPFLAGS = -g $(COMMON_FLAGS)
 LDFLAGS  =  
-LIBS     = -lz -lpthread -ludev -lGLESv2 -lGLEW -lEGL
+LIBS     = -lz -lpthread -ludev -lGL -lGLEW -lEGL
 LIBDIR   =  
 
 TARGET   = bluemsx
