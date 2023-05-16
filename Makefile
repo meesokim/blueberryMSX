@@ -367,7 +367,6 @@ SOURCE_FILES += MB89352.c
 SOURCE_FILES += ScsiDevice.c
 SOURCE_FILES += ft245.c
 SOURCE_FILES += Z8530.c
-SOURCE_FILES += MsxBusDrive.cpp
 
 SOURCE_FILES += LanguageMinimal.c
 
