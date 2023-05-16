@@ -393,6 +393,7 @@ void mixerSetWriteCallback(Mixer* mixer, MixerWriteCallback callback, void* ref,
 
 Int32 mixerRegisterChannel(Mixer* mixer, Int32 audioType, Int32 stereo, MixerUpdateCallback callback, MixerSetSampleRateCallback rateCallback, void* ref)
 {
+    printf("mixer:%x\n", mixer);
     MixerChannel*  channel = mixer->channels + mixer->channelCount;
     AudioTypeInfo* type    = mixer->audioTypeInfo + audioType;
 

@@ -838,6 +838,7 @@ BoardType boardGetType()
 
 Mixer* boardGetMixer()
 {
+    printf("boardMixer:%x\n", boardMixer);
     return boardMixer;
 }
 

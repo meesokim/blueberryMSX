@@ -262,6 +262,7 @@ int insertCartridge(Properties* properties, int drive, const char* fname, const 
               0 == strcmp(CARTNAME_ESESCC256,   filename) ? SRAM_ESESCC256 :
               0 == strcmp(CARTNAME_ESESCC512,   filename) ? SRAM_ESESCC512 :
 			  0 == strcmp(CARTNAME_MSXBUS, 		filename) ? ROM_MSXBUS :
+			  0 == strcmp(CARTNAME_MSXDRIVE, 	filename) ? ROM_MSXDRIVE :
               romType;
 
     if (drive == 0) {
@@ -309,7 +310,14 @@ int insertDiskette(Properties* properties, int drive, const char* fname, const c
     int isZip = isFileExtension(fname, ".zip");
 
     if (fname) strcpy(filename, fname);
-	
+
+	if (!cfileexists(filename))// && strncmp("/dev/sd", filename, 6))
+	{
+		printf("no disk: %s\n", filename);
+		return 1;
+	}
+	printf("file exists: disk=%d, %s, %s\n", drive, filename, diskName);
+
 	printf("insertDiskette:%s\n", filename);
 
     emulatorResetMixer();
@@ -402,12 +410,6 @@ int insertDiskette(Properties* properties, int drive, const char* fname, const c
         }
     }
 	
-	if (!cfileexists(filename))// && strncmp("/dev/sd", filename, 6))
-	{
-		printf("file not exists: %s\n", filename);
-		return 1;
-	}
-	printf("file exists: disk=%d, %s, %s\n", drive, filename, diskName);
 
     strcpy(properties->media.disks[drive].fileName, filename);
     strcpy(properties->media.disks[drive].fileNameInZip, diskName);

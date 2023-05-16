@@ -31,7 +31,8 @@
 #include "DeviceManager.h"
 #include "SaveState.h"
 #include "IoPort.h"
-#include "MsxBus.h"
+#include "zmx.h"
+#include "zmxbus.h"
 #include "SCC.h"
 #include <stdlib.h>
 #include <string.h>
@@ -40,15 +41,19 @@ static FILE* f = NULL;
 
 typedef struct {
     int deviceHandle;
-    MbHandle* msxBus;
     int slot;
     int sslot;
-    int cartSlot;
-//    SccType sccType;
+    int cart;
     SccMode sccMode;
     SCC* scc;
 	int sccEnable;
 } RomMapperMsxBus;
+
+static ReadfnPtr msxread;
+static WritefnPtr msxwrite;
+static InitfnPtr msxinit;
+static ResetfnPtr resetz;	
+static void *hDLL = 0;	
 
 static void saveState(RomMapperMsxBus* rm)
 {
@@ -65,28 +70,22 @@ static void loadState(RomMapperMsxBus* rm)
 
 static void destroy(RomMapperMsxBus* rm)
 {
-    if (rm->msxBus != NULL) {
-        msxBusDestroy(rm->msxBus);
-        ioPortUnregisterUnused(rm->cartSlot);
-        slotUnregister(rm->slot, rm->sslot, 0);
-    }
+    if (hDLL)
+        CloseZemmix(hDLL);    
+    ioPortUnregisterUnused(rm->cart);
+    slotUnregister(rm->slot, rm->sslot, 0);
     deviceManagerUnregister(rm->deviceHandle);
-
-//    fclose(f);
-    f = NULL;
-
     free(rm);
 }
 
 static UInt8 readIo(RomMapperMsxBus* rm, UInt16 port)
 {
-	UInt8 value = msxBusReadIo(rm->msxBus, port);
-    return value;
+   return msxread(RD_IO, port);
 }
 
 static void writeIo(RomMapperMsxBus* rm, UInt16 port, UInt8 value)
 {
-    msxBusWriteIo(rm->msxBus, port, value);
+    msxwrite(WR_IO, port, value);
 }
 
 static UInt8 read(RomMapperMsxBus* rm, UInt16 address) 
@@ -97,7 +96,7 @@ static UInt8 read(RomMapperMsxBus* rm, UInt16 address)
         return sccRead(rm->scc, (UInt8)(address & 0xff));
     }
 #endif	
-    return msxBusRead(rm->msxBus, address);
+    return msxread(RD_SLOT1+rm->cart, address);
 }
 
 static void write(RomMapperMsxBus* rm, UInt16 address, UInt8 value) 
@@ -111,10 +110,37 @@ static void write(RomMapperMsxBus* rm, UInt16 address, UInt8 value)
         sccWrite(rm->scc, address & 0xff, value);
     }
 #endif
-	msxBusWrite(rm->msxBus, address, value);
+    return msxwrite(WR_SLOT1+rm->cart, address, value);
 }
 
+static void reset(RomMapperMsxBus* rm)
+{
+    printf("reset of RomMapperMsxBus\n");
+    sccReset(rm->scc);
+    resetz();
+}
+
+
 static const int mon_ports[] = {}; // 0x7c, 0x7d, 0x7e, 0x7f, 0xa0, 0xa1, 0xa2, 0xa3, 0 };
+
+#define ZMX_DRIVER "./zmxbus" ZEMMIX_EXT 
+
+static void initialize() {
+    if (hDLL)
+        CloseZemmix(hDLL);
+    hDLL = OpenZemmix((char*)ZMX_DRIVER, RTLD_LAZY);
+    if (!hDLL)
+    {
+        printf("DLL open error!! %s\n", ZMX_DRIVER);
+        exit(1);
+    }	
+    msxread = (ReadfnPtr)GetZemmixFunc(hDLL, (char*)MSXREAD);
+    msxwrite = (WritefnPtr)GetZemmixFunc(hDLL, (char*)MSXWRITE);
+    msxinit = (InitfnPtr)GetZemmixFunc(hDLL, (char*)MSXINIT);
+    resetz = (ResetfnPtr)GetZemmixFunc(hDLL, (char*)MSXRESET);            
+    msxinit(0);
+    resetz();		
+}
 
 int romMapperMsxBusCreate(int cartSlot, int slot, int sslot) 
 {
@@ -124,34 +150,23 @@ int romMapperMsxBusCreate(int cartSlot, int slot, int sslot)
 	
     rm = malloc(sizeof(RomMapperMsxBus));
 
-    rm->deviceHandle = deviceManagerRegister(ROM_MSXBUS, &callbacks, rm);
-
     rm->slot     	= slot;
     rm->sslot    	= sslot;
-    rm->cartSlot 	= cartSlot;
+    rm->cart 	    = cartSlot;
 	rm->scc         = sccCreate(boardGetMixer());
     rm->sccMode     = SCC_COMPATIBLE;
 	rm->sccEnable	= 0;
-	
-    rm->msxBus = msxBusCreate(cartSlot, slot);
-	if (rm->msxBus)
-    {
-		printf("MSXBus created. cartSlot=%d slot=%d sslot=%d\n", cartSlot, slot, sslot);
-        if (cartSlot == 0) {
-    //		for(i = 1; i < 255; i++)
-    //			ioPortRegisterUnused(i, readIo, writeIo, rm);
-            slotRegister(slot, sslot, 0, 8, read, read, write, destroy, rm);
-            for (i = 0; i < 8; i++) {   
-                slotMapPage(rm->slot, rm->sslot, i, NULL, 0, 0);
-            }
-            //printf("MSXBus created. cartSlot=%d slot=%d sslot=%d\n", cartSlot, slot, sslot);
-            for(i = 0; mon_ports[i] > 0; i++)
-                ioMonPortRegister(mon_ports[i], NULL, writeIo, rm);
-        }
-
+    initialize();
+    rm->deviceHandle = deviceManagerRegister(ROM_MSXBUS, &callbacks, rm);
+    slotRegister(slot, sslot, 0, 8, read, read, write, destroy, rm);
+    for (i = 0; i < 8; i++) {   
+        slotMapPage(rm->slot, rm->sslot, i, NULL, 0, 0);
     }
-
-
+    for(i = 1; i < 255; i++)
+        ioPortRegisterUnused(i, readIo, writeIo, rm);
+    //printf("MSXBus created. cartSlot=%d slot=%d sslot=%d\n", cartSlot, slot, sslot);
+    for(i = 0; mon_ports[i] > 0; i++)
+        ioMonPortRegister(mon_ports[i], NULL, writeIo, rm);
     return 1;
 }
 

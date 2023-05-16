@@ -360,8 +360,8 @@ static int emuStartWithArguments(Properties* properties, char* commandLine, char
         if (checkArg(argument, "rom1")) {
             argument = extractTokenEx(cmdLine, ++i, gamedir);
             printf("argument:%s\n", argument);
-            // if (argument == NULL || !isRomFileType(argument, rom1zip)) return 0; // Invaid argument
-            strcpy(rom1, argument);
+            if (argument == NULL || !isRomFileType(argument, rom1zip)) return 0; // Invaid argument
+            // strcpy(rom1, argument);
             printf("rom1: %s\n", rom1);
             startEmu = 1;
         }
@@ -500,6 +500,7 @@ static int emuStartWithArguments(Properties* properties, char* commandLine, char
         case ROM_MEGAFLSHSCC: strcat(rom1, CARTNAME_MEGAFLSHSCC); break;
         case ROM_MEGAFLSHSCCPLUS:   strcat(rom1, CARTNAME_MEGAFLSHSCCPLUS); break;
 		case ROM_MSXBUS:	  strcat(rom1, CARTNAME_MSXBUS); break;
+        case ROM_MSXDRIVE:    strcat(rom1, CARTNAME_MSXDRIVE); break;
         }
     }
 
@@ -524,6 +525,7 @@ static int emuStartWithArguments(Properties* properties, char* commandLine, char
         case ROM_MEGAFLSHSCC: strcat(rom2, CARTNAME_MEGAFLSHSCC); break;
         case ROM_MEGAFLSHSCCPLUS:   strcat(rom2, CARTNAME_MEGAFLSHSCCPLUS); break;
 		case ROM_MSXBUS:	  strcat(rom2, CARTNAME_MSXBUS); break;
+        case ROM_MSXDRIVE:    strcat(rom2, CARTNAME_MSXDRIVE); break;
         }
     }
 

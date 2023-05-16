@@ -1518,6 +1518,10 @@ int machineInitialize(Machine* machine, UInt8** mainRam, UInt32* mainRamSize, UI
 			success &= romMapperMsxBusCreate(0, slot, subslot);
 			break;
 			
+		case ROM_MSXDRIVE:
+			success &= romMapperMsxDriveCreate(0, slot, subslot);
+			break;
+
         case ROM_MAJUTSUSHI:
             success &= romMapperMajutsushiCreate(romName, buf, size, slot, subslot, startPage);
             break;

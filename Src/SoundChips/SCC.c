@@ -379,13 +379,13 @@ SCC* sccCreate(Mixer* mixer)
     SCC* scc = (SCC*)calloc(1, sizeof(SCC));
 
     scc->mixer = mixer;
-
 //    scc->debugHandle = debugDeviceRegister(DBGTYPE_AUDIO, langDbgDevScc(), &dbgCallbacks, scc);
 
     scc->handle = mixerRegisterChannel(mixer, MIXER_CHANNEL_SCC, 0, sccSync, NULL, scc);
 
     sccReset(scc);
 
+    printf("SccCreate\n");
     return scc;
 }
 

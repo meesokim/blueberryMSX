@@ -838,6 +838,8 @@ char* langRomTypeEseSCC128();
 char* langRomTypeEseSCC256();
 char* langRomTypeEseSCC512();
 char* langRomTypeGoudaSCSI();
+char* langRomTypeMsxBus();
+char* langRomTypeMsxDrive();
 
 //----------------------
 // Debug type lines

@@ -207,6 +207,8 @@ char* langRomTypeNoWind()           { return "NoWind USB"; }
 char* langRomTypeGoudaSCSI()        { return "Gouda SCSI"; }
 char* langRomTypeMasushitaSramInv() { return "Matsushita SRAM - Turbo 5.37MHz"; }
 char* langRomTypeMsxMidiExternal()  { return "External MIDI"; }
+char* langRomTypeMsxBus()           { return "MSX Bus"; }
+char* langRomTypeMsxDrive()         { return "MSX Drive"; }
 
 //----------------------
 // Debug type lines

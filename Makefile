@@ -308,6 +308,7 @@ SOURCE_FILES += romMapperSg1000RamExpander.c
 SOURCE_FILES += romMapperDooly.c
 SOURCE_FILES += romMapperMuPack.c
 SOURCE_FILES += romMapperMsxBus.c
+SOURCE_FILES += romMapperMsxDrive.c
 SOURCE_FILES += zmx.cc
 
 SOURCE_FILES += Crc32Calc.c
@@ -366,7 +367,7 @@ SOURCE_FILES += MB89352.c
 SOURCE_FILES += ScsiDevice.c
 SOURCE_FILES += ft245.c
 SOURCE_FILES += Z8530.c
-SOURCE_FILES += MsxBus.cpp
+SOURCE_FILES += MsxBusDrive.cpp
 
 SOURCE_FILES += LanguageMinimal.c
 

@@ -261,6 +261,7 @@ RomType mediaDbStringToType(const char* romName)
     if (iequals(name, "opcodeega"))    return ROM_OPCODEMEGA;
     if (iequals(name, "coleco"))       return ROM_COLECO;
 	if (iequals(name, "msxbus"))	   return ROM_MSXBUS;
+	if (iequals(name, "msxdrive"))	   return ROM_MSXDRIVE;
 
     // SG-1000 roms
     if (iequals(name, "sg1000"))       return ROM_SG1000;
@@ -747,8 +748,8 @@ extern "C" const char* romTypeToString(RomType romType)
     case SRAM_ESESCC256:  return langRomTypeEseSCC256();
     case SRAM_ESESCC512:  return langRomTypeEseSCC512();
     case ROM_GOUDASCSI:   return langRomTypeGoudaSCSI();
-	case ROM_MSXBUS:	  return "msxbus";
-
+	case ROM_MSXBUS:	  return langRomTypeMsxBus();
+	case ROM_MSXDRIVE:	  return langRomTypeMsxDrive();
     case ROM_UNKNOWN:     return langTextUnknown();
     }
 
@@ -924,8 +925,9 @@ extern "C" const char* romTypeToShortString(RomType romType)
     case SRAM_ESESCC256:  return "ESE-SCC256";
     case SRAM_ESESCC512:  return "ESE-SCC512";
     case ROM_GOUDASCSI:   return "GOUDA SCSI";
-
-    case ROM_UNKNOWN:     return "UNKNOWN";
+    case ROM_MSXBUS:      return "MSX Bus";
+    case ROM_MSXDRIVE:    return "MSX Drive";
+    // case ROM_UNKNOWN:     return "UNKNOWN";
     }
 
     return "UNKNOWN";
@@ -977,6 +979,9 @@ int romTypeIsRom(RomType romType) {
     case ROM_EXTRAM32KB:  return 1;
     case ROM_EXTRAM48KB:  return 1;
     case ROM_EXTRAM64KB:  return 1;
+    case ROM_MSXBUS:      return 1;
+    case ROM_MSXDRIVE:    return 1;
+
     }
     return 0;
 }
