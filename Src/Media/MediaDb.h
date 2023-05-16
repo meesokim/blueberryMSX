@@ -202,7 +202,7 @@ enum  {
     ROM_ACTIVISIONPCB = 172,
     ROM_ACTIVISIONPCB_16K = 173,
 	ROM_MSXBUS		= 174,
-    ROM_MAXROMID    = 174
+    ROM_MAXROMID    = 200
 };
 
 typedef struct MediaType MediaType;
