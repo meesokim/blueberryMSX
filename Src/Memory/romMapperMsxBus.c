@@ -101,7 +101,7 @@ static UInt8 read(RomMapperMsxBus* rm, UInt16 address)
 
 static void write(RomMapperMsxBus* rm, UInt16 address, UInt8 value) 
 {
-#if 1	
+#if 0
 	if (((address & 0x97ff) == 0x9000) && ((value & 0x3f) == 0x3f))
 	{
 		rm->sccEnable = 1;
@@ -153,7 +153,7 @@ int romMapperMsxBusCreate(int cartSlot, int slot, int sslot)
     rm->slot     	= slot;
     rm->sslot    	= sslot;
     rm->cart 	    = cartSlot;
-	rm->scc         = sccCreate(boardGetMixer());
+	// rm->scc         = sccCreate(boardGetMixer());
     rm->sccMode     = SCC_COMPATIBLE;
 	rm->sccEnable	= 0;
     initialize();
