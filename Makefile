@@ -76,12 +76,6 @@ CFLAGS += $(SDL_CFLAGS)
 CPPFLAGS += $(SDL_CFLAGS)
 LDFLAGS += $(SDL_LDFLAGS)
 
-DEPS := $(OBJS:.o=.d)
-
--include $(DEPS)
-
-%.o: %.c
-	$(CC) $(CFLAGS) -MM -MF $(patsubst %.o,%.d,$@) -o $@ $<
 
 #
 # Include paths
@@ -463,8 +457,16 @@ $(TARGET): $(OUTPUT_OBJS)
 	$(ECHO) Linking $@...
 	$(LD) -o $@ $(OUTPUT_OBJS) $(LIBS) $(LDFLAGS) $(LIB_DIR)
 
-dep:
-	echo $(CC) -M $(SRCS)
+DEPS := $(OBJS:.o=.d)
+
+.c.dep:
+	$(CC) -MM -o $@ $(SRCS) $(INCLUDE) $<
+
+-include $(DEPS)
+
+# %.o: %.c
+# 	$(CC) $(CFLAGS) -MM -MF $(patsubst %.o,%.d,$@) -o $@ $<
+
 
 clean_$(TARGET):
 	$(ECHO) Cleaning files ...
