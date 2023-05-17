@@ -116,7 +116,8 @@ static void write(RomMapperMsxBus* rm, UInt16 address, UInt8 value)
 static void reset(RomMapperMsxBus* rm)
 {
     printf("reset of RomMapperMsxBus\n");
-    sccReset(rm->scc);
+    // sccReset(rm->scc);
+    sleep(5);
     resetz();
 }
 
@@ -144,7 +145,7 @@ static void initialize() {
 
 int romMapperMsxBusCreate(int cartSlot, int slot, int sslot) 
 {
-    DeviceCallbacks callbacks = { destroy, NULL, saveState, loadState };
+    DeviceCallbacks callbacks = { destroy, reset, saveState, loadState };
     RomMapperMsxBus* rm;
     int i;
 	
@@ -158,7 +159,7 @@ int romMapperMsxBusCreate(int cartSlot, int slot, int sslot)
 	rm->sccEnable	= 0;
     initialize();
     rm->deviceHandle = deviceManagerRegister(ROM_MSXBUS, &callbacks, rm);
-    slotRegister(slot, sslot, 0, 8, read, read, write, destroy, rm);
+    slotRegister(slot, sslot, 0, 8, read, read, write, reset, rm);
     for (i = 0; i < 8; i++) {   
         slotMapPage(rm->slot, rm->sslot, i, NULL, 0, 0);
     }

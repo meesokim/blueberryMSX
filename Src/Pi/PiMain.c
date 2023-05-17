@@ -166,7 +166,7 @@ static void handleEvent(SDL_Event* event)
 			}
 
 			piUpdateEmuDisplay();
-			updateLeds();
+			// updateLeds();
 			//archEventSet(dpyUpdateAckEvent);
 			pendingDisplayEvents--;
 			break;
@@ -328,7 +328,7 @@ int main(int argc, char **argv)
 	keyboardInit(properties);
 
 	// Larger buffers cause sound delay
-	// properties->sound.bufSize = 40;
+	properties->sound.bufSize = 200;
 
 	mixer = mixerCreate();
 	for (i = 0; i < MIXER_CHANNEL_TYPE_COUNT; i++) {

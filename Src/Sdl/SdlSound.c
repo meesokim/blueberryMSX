@@ -150,7 +150,7 @@ void archSoundCreate(Mixer* mixer, UInt32 sampleRate, UInt32 bufferSize, Int16 c
 	printf ("format:%d(%d)\n", desired.format, audioSpec.format);
 	printf ("size:%d(%d)\n", desired.size, audioSpec.size);
 	
-    sdlSound.bufferSize = 5;
+    sdlSound.bufferSize = 2;
     while (sdlSound.bufferSize < 8 * audioSpec.size) sdlSound.bufferSize *= 2;
 	sdlSound.bufferSize = audioSpec.size * 4;
 	printf ("size:%d\n", sdlSound.bufferSize);
