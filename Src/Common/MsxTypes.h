@@ -79,23 +79,23 @@ typedef UInt32 Pixel;
 
 #elif PIXEL_WIDTH==8
 
-#define COLSHIFT_R  10
-#define COLMASK_R   0x1f
-#define COLSHIFT_G  5
-#define COLMASK_G   0x1f
-#define COLSHIFT_B  0
-#define COLMASK_B   0x1f
-
-typedef UInt8 Pixel;
-
-#else
-
 #define COLSHIFT_R  5
 #define COLMASK_R   0x07
 #define COLSHIFT_G  2
 #define COLMASK_G   0x03
 #define COLSHIFT_B  0
 #define COLMASK_B   0x07
+
+typedef UInt8 Pixel;
+
+#else
+
+#define COLSHIFT_R  11
+#define COLMASK_R   0x1f
+#define COLSHIFT_G  5
+#define COLMASK_G   0x3f
+#define COLSHIFT_B  0
+#define COLMASK_B   0x1f
 
 typedef UInt16 Pixel;
 
@@ -154,9 +154,6 @@ void dbgPrint();
 // Enable for 565 RGB displays
 #define VIDEO_COLOR_TYPE_RGB565
 
-// Enable for 565 RGB displays
-#define VIDEO_COLOR_TYPE_RGB565
-
 // Enable for 5551 RGBA displays
 #define VIDEO_COLOR_TYPE_RGBA5551
 
@@ -172,6 +169,7 @@ void dbgPrint();
 
 #endif
 
+#define VIDEO_COLOR_TYPE_RGB565
 
 // Placeholder for configuration definitions
 // Targets that wish to disable features should create an ifdef block

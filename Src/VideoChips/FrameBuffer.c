@@ -392,8 +392,11 @@ FrameBufferData* frameBufferDataCreate(int maxWidth, int maxHeight, int defaultH
 
         frameData->frame[i].maxWidth = maxWidth;
         frameData->frame[i].lines = maxHeight;
+        UInt16 *fb = frameData->frame[i].fb;
         for (j = 0; j < FB_MAX_LINES; j++) {
             frameData->frame[i].line[j].doubleWidth = defaultHorizZoom - 1;
+            frameData->frame[i].line[j].buffer = fb;
+            fb += FB_MAX_LINE_WIDTH;
         }
     }
 #ifndef WII

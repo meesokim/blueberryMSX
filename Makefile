@@ -335,7 +335,6 @@ SOURCE_FILES += DirAsDisk.c
 SOURCE_FILES += Disk.c 
 SOURCE_FILES += FdcAudio.c
 SOURCE_FILES += GameReader.c
-# SOURCE_FILES += MsxBusPi.c
 SOURCE_FILES += HarddiskIDE.c
 SOURCE_FILES += I8250.c
 SOURCE_FILES += I8251.c
@@ -441,6 +440,9 @@ SOURCE_FILES += CoinDevice.c
 SOURCE_FILES += DebugDeviceManager.c
 SOURCE_FILES += Debugger.c 
 
+
+
+
 HEADER_FILES  =
 
 #
@@ -460,6 +462,9 @@ clean: clean_$(TARGET)
 $(TARGET): $(OUTPUT_OBJS)
 	$(ECHO) Linking $@...
 	$(LD) -o $@ $(OUTPUT_OBJS) $(LIBS) $(LDFLAGS) $(LIB_DIR)
+
+dep:
+	echo $(CC) -M $(SRCS)
 
 clean_$(TARGET):
 	$(ECHO) Cleaning files ...
@@ -489,3 +494,4 @@ $(OUTPUT_DIR)/%.o: %.cxx  $(HEADER_FILES)
 $(OUTPUT_DIR)/%.res: %.rc $(HEADER_FILES)
 	$(ECHO) Compiling $<...
 	@$(RC) $(CPPFLAGS) $(INCLUDE) -o $@ -i $<
+# DO NOT DELETE

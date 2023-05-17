@@ -55,8 +55,8 @@ typedef	struct ShaderInfo {
 	GLboolean scanline;
 } ShaderInfo;
 
-#define	TEX_WIDTH  544
-#define	TEX_HEIGHT 240
+#define	TEX_WIDTH  FB_MAX_LINE_WIDTH
+#define	TEX_HEIGHT FB_MAX_LINES
 
 #define BIT_DEPTH       16
 #define BYTES_PER_PIXEL (BIT_DEPTH >> 3)
@@ -100,15 +100,15 @@ static const char* vertexShaderSrc =
 	"attribute vec2 a_texcoord;\n"
 	"attribute vec4 in_Colour;\n"
 	"varying vec4 v_vColour;\n"
-	"varying mediump vec2 v_texcoord;\n"
+	"varying vec2 v_texcoord;\n"
 	"varying vec4 TEX0;\n"
 	"void main() {\n"
 	"	v_texcoord = a_texcoord;\n"
 	"	v_vColour = in_Colour;\n"
 	"   if (scanline)\n"
 	"	{\n"
-	"   	gl_Position = a_position*u_vp_matrix;\n"
-	// "   	gl_Position = a_position.x*u_vp_matrix[0] + a_position.y*u_vp_matrix[1] + a_position.z*u_vp_matrix[2] + a_position.w*u_vp_matrix[3];\n"
+	// "   	gl_Position = a_position*u_vp_matrix;\n"
+	"   	gl_Position = a_position.x*u_vp_matrix[0] + a_position.y*u_vp_matrix[1] + a_position.z*u_vp_matrix[2] + a_position.w*u_vp_matrix[3];\n"
 	"   	TEX0.xy = a_position.xy;\n"
 	"	} else {"
 	"		gl_Position = u_vp_matrix * a_position;\n"
@@ -123,7 +123,7 @@ static const char* fragmentShaderSrc =
 	"varying vec4 TEX0;\n"
 	"uniform vec2 TextureSize;\n"
 	"void main() {\n"
-	"   if (scanline)\n"
+	"   if (!scanline)\n"
 	"	{\n"
 	"  		vec3 col;\n"
 	"  		float x = TEX0.x * TextureSize.x;\n"
@@ -181,7 +181,7 @@ SDL_Renderer* rdr;
 // #define FbTexW 0x200
 // #define FbTexH 0x100
 static float VertexCoord[] = {0, 0, TEX_WIDTH, 0, 0, TEX_HEIGHT, TEX_WIDTH, TEX_HEIGHT};
-static float TexCoord[] = {0, 0, 1, 0, 0, 0.95, 1, 0.95};
+static float TexCoord[] = {0, 0, 1, 0, 0, 1, 1, 1};
 int width = -1;
 int lines = -1;
 int interlace = -1;
@@ -190,17 +190,18 @@ static void initGL() {
 	glEnable(GL_TEXTURE_2D);
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-	// glClearColor(0, 0, 0, 0);
-	glShadeModel(GL_FLAT);
+	glEnableClientState(GL_INDEX_ARRAY);
+	// glShadeModel(GL_FLAT);
 	glOrtho(0, TEX_WIDTH, TEX_HEIGHT, 0, 1, -1);
 	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-	// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 544, 240, 0, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, 0);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, TEX_WIDTH, TEX_HEIGHT, 0, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, 0);
 	glVertexPointer(2, GL_FLOAT, 0, VertexCoord);
 	glTexCoordPointer(2, GL_FLOAT, 0, TexCoord);
+
 }
 
 int piInitVideo()
@@ -242,7 +243,7 @@ int piInitVideo()
 		return 0;
 	}
 	fprintf(stderr, "Initializing shaders...\n");
-	return 1;
+	// return 1;
 
 	// Init shader resources
 	memset(&shader, 0, sizeof(ShaderInfo));
@@ -264,7 +265,7 @@ int piInitVideo()
 	glGenTextures(1, textures);
 	// glBindTexture(GL_TEXTURE_2D, textures[0]);
 	// glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, TEX_WIDTH, TEX_HEIGHT, 0, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, msxScreen);
-
+	glUniform1i(shader.scanline, 1);
 	glGenBuffers(3, buffers);
 	glBindBuffer(GL_ARRAY_BUFFER, buffers[0]);
 	glBufferData(GL_ARRAY_BUFFER, kVertexCount * sizeof(GLfloat) * 3, vertices, GL_STATIC_DRAW);
@@ -314,22 +315,30 @@ static void draw() {
 	if (frameBuffer == NULL) {
 		frameBuffer = frameBufferGetWhiteNoiseFrame();
 	}
-	if (frameBufferGetDoubleWidth(frameBuffer, 0) != width || height != frameBuffer->lines)
+	if (frameBufferGetDoubleWidth(frameBuffer, 0) != width || height != frameBuffer->lines || (interlace > 0 && frameBuffer->interlace == 0) || (!interlace && frameBuffer->interlace))
 	{
 		width = frameBufferGetDoubleWidth(frameBuffer, 0);
 		height = frameBuffer->lines;
+		interlace = frameBuffer->interlace;
 		msxScreenPitch = frameBuffer->maxWidth * (width+1);//(256+16)*(width+1);
-		printf("width: %d, w:%d, h:%d\n", width, msxScreenPitch, height);
+		VertexCoord[2] = VertexCoord[6] = FB_MAX_LINE_WIDTH * FB_MAX_LINE_WIDTH / msxScreenPitch;
+		VertexCoord[5] = VertexCoord[7] = FB_MAX_LINES * FB_MAX_LINES / height;
+		printf("width: %d, w:%d, h:%d, interlace: %d\n", width, msxScreenPitch, height, frameBuffer->interlace);
+		setOrtho(projection, -1, 1,    1,   -1, -0.5f, +0.5f,1,1);		
+		glUniformMatrix4fv(shader.u_vp_matrix, 1, GL_FALSE, projection);		
 	}	
-	videoRender(video, 	frameBuffer, BIT_DEPTH, 1, msxScreen, 0, msxScreenPitch*2, -1);
-
-	// TexCoord[2] = TexCoord[6] =  (msxScreenPitch + 100.0f) / TEX_WIDTH;
-	// glTexCoordPointer(2, GL_FLOAT, 0, TexCoord);
-	// TexCoord[0] = TexCoord[4] = 2;
-	VertexCoord[2] = VertexCoord[6] = TEX_WIDTH * TEX_WIDTH / msxScreenPitch;
-	// glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, FbTexW, FbTexH, GL_BGRA_EXT, GL_UNSIGNED_BYTE, frameBuffer);	
-	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, msxScreenPitch, height, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, msxScreen);
+	// videoRender(video, 	frameBuffer, BIT_DEPTH, 1, msxScreen, 0, msxScreenPitch*2, -1);
+	// glUniform1i(shader.u_texture, textures[0]);
+	// glBindBuffer(GL_ARRAY_BUFFER, buffers[0]);
+	// glVertexAttribPointer(shader.a_position, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), NULL);
+	// glEnableVertexAttribArray(shader.a_position);
+	// glBindBuffer(GL_ARRAY_BUFFER, buffers[1]);
+	// glVertexAttribPointer(shader.a_texcoord, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), NULL);
+	// glEnableVertexAttribArray(shader.a_texcoord);	
+	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, FB_MAX_LINE_WIDTH, height, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, frameBuffer->fb);
+	// glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, msxScreenPitch, height, GL_COLOR_INDEX, GL_UNSIGNED_BYTE, msxScreen);
 	// glClear(GL_COLOR_BUFFER_BIT);
+	// drawQuad(&shader);
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 }
 
@@ -370,18 +379,27 @@ void piUpdateEmuDisplay2()
 		// 	setOrtho(projection, -sx/2, sx/2,  sy/2, -sy/2, -0.5f, +0.5f,1,1);		
 		// else
 		// 	setOrtho(projection, -sx/2, sx/2,    0,   -sy, -0.5f, +0.5f,1,1);		
-		// // setOrtho(projection, -1, 1,    1,   -1, -0.5f, +0.5f,1,1);		
-		// glUniformMatrix4fv(sh->u_vp_matrix, 1, GL_FALSE, projection);
+		// setOrtho(projection, -1, 1,    1,   -1, -0.5f, +0.5f,1,1);		
+		glUniformMatrix4fv(shader.u_vp_matrix, 1, GL_FALSE, projection);
 	}
-	videoRender(video, 	frameBuffer, BIT_DEPTH, 1, msxScreen, 0, msxScreenPitch*2, -1);
+	videoRender240(video, 	frameBuffer, BIT_DEPTH, 1, msxScreen, 0, msxScreenPitch*2, -1);
 	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, msxScreenPitch, height, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, msxScreen);
 	glClear(GL_COLOR_BUFFER_BIT);
-	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-	return;	
-	glClear(GL_COLOR_BUFFER_BIT);
-	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);						
+	glUniform1i(shader.u_texture, 0);
+	// glBindBuffer(GL_ARRAY_BUFFER, buffers[0]);
+	// glVertexAttribPointer(shader.a_position, 3, GL_FLOAT,
+	// 	GL_FALSE, 3 * sizeof(GLfloat), NULL);
+	// glEnableVertexAttribArray(shader.a_position);
 
-	glDisable(GL_TEXTURE_2D);
+	glBindBuffer(GL_ARRAY_BUFFER, buffers[1]);
+	glVertexAttribPointer(shader.a_texcoord, 2, GL_FLOAT,
+		GL_FALSE, 2 * sizeof(GLfloat), NULL);
+	glEnableVertexAttribArray(shader.a_texcoord);
+	VertexCoord[2] = VertexCoord[6] = TEX_WIDTH * TEX_WIDTH / msxScreenPitch;
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+	// glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffers[2]);
+	// glDrawElements(GL_TRIANGLES, kIndexCount, GL_UNSIGNED_SHORT, 0);	
+	return;	
 }
 
 static GLuint createShader(GLenum type, const char *shaderSrc)
@@ -427,7 +445,7 @@ static GLuint createProgram(const char *vertexShaderSrc, const char *fragmentSha
 	GLuint fragmentShader = createShader(GL_FRAGMENT_SHADER, fragmentShaderSrc);
 	if (!fragmentShader) {
 		fprintf(stderr, "createShader(GL_FRAGMENT_SHADER) failed\n");
-		glDeleteShader(vertexShader);
+		glDeleteShader(fragmentShader);
 		return 0;
 	}
 
@@ -483,9 +501,9 @@ static void setOrtho(float m[4][4],
 
 static void drawQuad(const ShaderInfo *sh)
 {
-	glUniform1i(sh->u_texture, 0);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glUniform1i(sh->u_texture, textures[0]);
+	// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
 	glBindBuffer(GL_ARRAY_BUFFER, buffers[0]);
 	glVertexAttribPointer(sh->a_position, 3, GL_FLOAT,

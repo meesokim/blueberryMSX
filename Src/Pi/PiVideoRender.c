@@ -260,7 +260,7 @@ void videoUpdateAll(Video* video, Properties* properties)
     videoSetPalMode(video, VIDEO_PAL_FAST);
 }
 
-static inline int videoRender240(Video *pVideo, FrameBuffer *frame,
+int videoRender240(Video *pVideo, FrameBuffer *frame,
     int bitDepth, int zoom, void *pDestination, int dstOffset, int dstPitch,
     int canChangeZoom)
 {
@@ -276,27 +276,27 @@ static inline int videoRender240(Video *pVideo, FrameBuffer *frame,
     dstPitch >>= 1; // divided by sizeof(UInt16)
     LineBuffer *lineBuff = frame->line;
 //	printf("double=%d\r", doubleWidth);
-
 	if (doubleWidth) {
 		for (h = 0; h < height; h++) {
 			UInt16 *pOldDst = pDst;
 			UInt16 *pSrc = lineBuff->buffer;
 			srcWidth = (256+16)*(lineBuff->doubleWidth+1);
 			int width = srcWidth >> 2;
-            while (width--) {
-                // *(pDst++) = (((rgbTable[*(pSrc++)] & 0xe79c) >> 1) + ((rgbTable[*(pSrc++)] & 0xe79c) >> 1)) & 0xe79c;
-                // *(pDst++) = (((rgbTable[*(pSrc++)] & 0xe79c) >> 1) + ((rgbTable[*(pSrc++)] & 0xe79c) >> 1)) & 0xe79c;
-                // *(pDst++) = (((rgbTable[*(pSrc++)] & 0xe79c) >> 1) + ((rgbTable[*(pSrc++)] & 0xe79c) >> 1)) & 0xe79c;
-                // *(pDst++) = (((rgbTable[*(pSrc++)] & 0xe79c) >> 1) + ((rgbTable[*(pSrc++)] & 0xe79c) >> 1)) & 0xe79c;
-                *(pDst++) = rgbTable[*(pSrc++)];
-                *(pDst++) = rgbTable[*(pSrc++)];
-                *(pDst++) = rgbTable[*(pSrc++)];
-                *(pDst++) = rgbTable[*(pSrc++)];
-                *(pDst++) = rgbTable[*(pSrc++)];
-                *(pDst++) = rgbTable[*(pSrc++)];
-                *(pDst++) = rgbTable[*(pSrc++)];
-                *(pDst++) = rgbTable[*(pSrc++)];				
-            }
+            memcpy(pDst, pSrc, srcWidth*2);
+            // while (width--) {
+            //     // *(pDst++) = (((rgbTable[*(pSrc++)] & 0xe79c) >> 1) + ((rgbTable[*(pSrc++)] & 0xe79c) >> 1)) & 0xe79c;
+            //     // *(pDst++) = (((rgbTable[*(pSrc++)] & 0xe79c) >> 1) + ((rgbTable[*(pSrc++)] & 0xe79c) >> 1)) & 0xe79c;
+            //     // *(pDst++) = (((rgbTable[*(pSrc++)] & 0xe79c) >> 1) + ((rgbTable[*(pSrc++)] & 0xe79c) >> 1)) & 0xe79c;
+            //     // *(pDst++) = (((rgbTable[*(pSrc++)] & 0xe79c) >> 1) + ((rgbTable[*(pSrc++)] & 0xe79c) >> 1)) & 0xe79c;
+            //     // *(pDst++) = rgbTable[*(pSrc++)];
+            //     // *(pDst++) = rgbTable[*(pSrc++)];
+            //     // *(pDst++) = rgbTable[*(pSrc++)];
+            //     // *(pDst++) = rgbTable[*(pSrc++)];
+            //     // *(pDst++) = rgbTable[*(pSrc++)];
+            //     // *(pDst++) = rgbTable[*(pSrc++)];
+            //     // *(pDst++) = rgbTable[*(pSrc++)];
+            //     // *(pDst++) = rgbTable[*(pSrc++)];				
+            // }
 			pDst = pOldDst + dstPitch;
 			lineBuff++;
         }
@@ -308,9 +308,10 @@ static inline int videoRender240(Video *pVideo, FrameBuffer *frame,
 			UInt16 *pOldDst = pDst;
 			UInt16 *pSrc = lineBuff->buffer;
 			width = srcWidth;
-            while (width--) {
-                *(pDst++) = rgbTable[*(pSrc++)];
-            }
+            memcpy(pDst, pSrc, srcWidth * 2);
+            // while (width--) {
+            //     *(pDst++) = *(pSrc++);
+            // }
 			pDst = pOldDst + dstPitch;
 			lineBuff++;
         }

@@ -621,7 +621,8 @@ static void onDisplay(VDP* vdp, UInt32 time)
         if (vdpIsInterlaceOn(vdp->vdpRegs)) {
             frameBufferSetInterlace(frameBuffer, (vdp->vdpStatus[2] & 0x02) && (vdp->vdpRegs[9]  & 0x04) && vdp->vram128 ? INTERLACE_EVEN : INTERLACE_ODD );
         }
-        else {
+        else 
+        {
             frameBufferSetInterlace(frameBuffer, INTERLACE_NONE);
         }
     }
