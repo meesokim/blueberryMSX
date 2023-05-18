@@ -463,7 +463,7 @@ void mixerSync(Mixer* mixer)
     UInt64 elapsed;
     int i;
 
-    elapsed        = mixer->rate * (UInt64)(systemTime - mixer->refTime) + mixer->refFrag * 5;
+    elapsed        = mixer->rate * (UInt64)(systemTime - mixer->refTime) + mixer->refFrag;
     mixer->refTime = systemTime;
     mixer->refFrag = (UInt32)(elapsed % (mixerCPUFrequency * (boardFrequency() / 3579545)));
     count          = (UInt32)(elapsed / (mixerCPUFrequency * (boardFrequency() / 3579545)));

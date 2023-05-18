@@ -534,10 +534,10 @@ static void doSync(UInt32 time, int breakpointHit)
     }
     else if (execTime < 0) {
         execTime = -execTime;
-        boardTimerAdd(syncTimer, boardSystemTime() + (UInt32)((UInt64)execTime * boardFreq / 1000));
+        boardTimerAdd(syncTimer, boardSystemTime() + (UInt32)((UInt64)execTime * boardFreq / 333));
     }
     else {
-        boardTimerAdd(syncTimer, time + (UInt32)((UInt64)execTime * boardFreq / 1000));
+        boardTimerAdd(syncTimer, time + (UInt32)((UInt64)execTime * boardFreq / 333));
     }
 }
 
@@ -788,8 +788,8 @@ int boardRun(Machine* machine,
             stateTimer = NULL;
         }
 
-        boardTimerAdd(syncTimer, boardSystemTime() + 1);
-        boardTimerAdd(mixerTimer, boardSystemTime() + boardFrequency() / 50);
+        boardTimerAdd(syncTimer, boardSystemTime() + 10);
+        boardTimerAdd(mixerTimer, boardSystemTime() + boardFrequency() / 100);
         
         if (boardPeriodicCallback != NULL) {
             periodicTimer = boardTimerCreate(boardPeriodicCallback, periodicRef);

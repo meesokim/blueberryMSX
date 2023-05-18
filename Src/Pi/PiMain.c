@@ -328,7 +328,7 @@ int main(int argc, char **argv)
 	keyboardInit(properties);
 
 	// Larger buffers cause sound delay
-	properties->sound.bufSize = 200;
+	properties->sound.bufSize = 100;
 
 	mixer = mixerCreate();
 	for (i = 0; i < MIXER_CHANNEL_TYPE_COUNT; i++) {
@@ -456,11 +456,11 @@ int main(int argc, char **argv)
 	while (!doQuit) {
 		SDL_WaitEvent(&event);
 		do {
-//			if (event.type == SDL_QUIT ) {
-//				doQuit = 1;
-//			} else {
+			if (event.type == SDL_QUIT ) {
+				doQuit = 1;
+			} else {
 				handleEvent(&event);
-//			}
+			}
 		} while (SDL_PollEvent(&event));
 	}
 
