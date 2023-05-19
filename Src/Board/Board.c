@@ -101,7 +101,7 @@ static BoardTimer*  periodicTimer;
 
 void boardTimerCleanup();
 
-#define HIRES_CYCLES_PER_LORES_CYCLE (UInt64)200000
+#define HIRES_CYCLES_PER_LORES_CYCLE (UInt64)100000
 #define boardFrequency64() (HIRES_CYCLES_PER_LORES_CYCLE * boardFrequency())
 
 
@@ -534,10 +534,10 @@ static void doSync(UInt32 time, int breakpointHit)
     }
     else if (execTime < 0) {
         execTime = -execTime;
-        boardTimerAdd(syncTimer, boardSystemTime() + (UInt32)((UInt64)execTime * boardFreq / 333));
+        boardTimerAdd(syncTimer, boardSystemTime() + (UInt32)((UInt64)execTime * boardFreq / 500));
     }
     else {
-        boardTimerAdd(syncTimer, time + (UInt32)((UInt64)execTime * boardFreq / 333));
+        boardTimerAdd(syncTimer, time + (UInt32)((UInt64)execTime * boardFreq / 1000));
     }
 }
 
@@ -545,7 +545,7 @@ static void onMixerSync(void* ref, UInt32 time)
 {
     mixerSync(boardMixer);
 
-    boardTimerAdd(mixerTimer, boardSystemTime() + boardFrequency() / 50);
+    boardTimerAdd(mixerTimer, boardSystemTime() + boardFrequency() / 500);
 }
 
 static void onStateSync(void* ref, UInt32 time)
@@ -656,7 +656,7 @@ int boardRewind()
         boardTimerAdd(stateTimer, boardSystemTime() + stateFrequency);
     }
     //boardTimerAdd(syncTimer, boardSystemTime() + 1);
-    boardTimerAdd(mixerTimer, boardSystemTime() + boardFrequency() / 50);
+    boardTimerAdd(mixerTimer, boardSystemTime() + boardFrequency() / 500);
     
     if (boardPeriodicCallback != NULL) {
         boardTimerAdd(periodicTimer, boardSystemTime() + periodicInterval);
@@ -789,7 +789,7 @@ int boardRun(Machine* machine,
         }
 
         boardTimerAdd(syncTimer, boardSystemTime() + 10);
-        boardTimerAdd(mixerTimer, boardSystemTime() + boardFrequency() / 100);
+        boardTimerAdd(mixerTimer, boardSystemTime() + boardFrequency() / 500);
         
         if (boardPeriodicCallback != NULL) {
             periodicTimer = boardTimerCreate(boardPeriodicCallback, periodicRef);
@@ -1062,7 +1062,7 @@ void boardSaveState(const char* stateFile, int screenshot)
 void boardSetFrequency(int frequency)
 {
     boardFreq = frequency * (boardFrequency() / 3579545);
-    
+    printf("boardFreq:%d\n", boardFreq);
 	mixerSetBoardFrequency(frequency);
 }
 

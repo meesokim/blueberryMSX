@@ -34,6 +34,7 @@
 #include <math.h>
 
 #define BITSPERSAMPLE     16
+#define FRAGMENT_SIZE     1
 
 #define str2ul(s) ((UInt32)s[0]<<0|(UInt32)s[1]<<8|(UInt32)s[2]<<16|(UInt32)s[3]<<24)
 
@@ -348,7 +349,7 @@ Mixer* mixerCreate()
 {
     Mixer* mixer = (Mixer*)calloc(1, sizeof(Mixer));
 
-    mixer->fragmentSize = 512;
+    mixer->fragmentSize = FRAGMENT_SIZE;
     mixer->enable = 1;
     mixer->rate = AUDIO_SAMPLERATE;
 
@@ -387,7 +388,7 @@ void mixerSetWriteCallback(Mixer* mixer, MixerWriteCallback callback, void* ref,
     mixer->writeRef = ref;
 
     if (mixer->fragmentSize <= 0) {
-        mixer->fragmentSize = 512;
+        mixer->fragmentSize = FRAGMENT_SIZE;
     }
 }
 

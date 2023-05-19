@@ -328,7 +328,7 @@ int main(int argc, char **argv)
 	keyboardInit(properties);
 
 	// Larger buffers cause sound delay
-	properties->sound.bufSize = 100;
+	// properties->sound.bufSize = 100;
 
 	mixer = mixerCreate();
 	for (i = 0; i < MIXER_CHANNEL_TYPE_COUNT; i++) {
