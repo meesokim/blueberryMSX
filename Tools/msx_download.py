@@ -24,7 +24,7 @@ def get_url_paths(url, ext='', params={}):
     return parent
 
 URL = 'https://download.file-hunter.com/'
-directories = ['Games/MSX1/ROM', 'Games/MSX2/ROM', 'Games/MSX2+/ROM', 'Games/MSX1/DSK']
+directories = ['Games/MSX1/ROM', 'Games/MSX2/ROM', 'Games/MSX2+/ROM', 'Games/MSX1/DSK', 'Games/MSX2/DSK', 'Games/MSX2+/DSK']
 ext = 'zip'
 for dir in directories:
     url = f'{URL}{dir}'
