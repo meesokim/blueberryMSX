@@ -323,7 +323,7 @@ static void draw() {
 		msxScreenPitch = frameBuffer->maxWidth * (width+1);//(256+16)*(width+1);
 		VertexCoord[2] = VertexCoord[6] = FB_MAX_LINE_WIDTH * FB_MAX_LINE_WIDTH / msxScreenPitch;
 		VertexCoord[5] = VertexCoord[7] = FB_MAX_LINES * FB_MAX_LINES / height;
-		printf("width: %d, w:%d, h:%d, interlace: %d\n", width, msxScreenPitch, height, frameBuffer->interlace);
+		// printf("width: %d, w:%d, h:%d, interlace: %d\n", width, msxScreenPitch, height, frameBuffer->interlace);
 		// setOrtho(projection, -1, 1,    1,   -1, -0.5f, +0.5f,1,1);		
 		// glUniformMatrix4fv(shader.u_vp_matrix, 1, GL_FALSE, projection);		
 	}	
