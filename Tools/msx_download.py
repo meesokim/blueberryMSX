@@ -6,15 +6,16 @@ import ssl
 import time
 from concurrent.futures import ThreadPoolExecutor
 
-if 'http_proxy' in os.environ:
-    http_proxy = os.environ['http_proxy']
-    proxy = urllib.request.ProxyHandler({'http': http_proxy, 'https': http_proxy})
-    # construct a new opener using your proxy settings
-    opener = urllib.request.build_opener(proxy)
-    # install the openen on the module-level
-    urllib.request.install_opener(opener)
+# if 'http_proxy' in os.environ:
+#     http_proxy = os.environ['http_proxy']
+#     proxy = urllib.request.ProxyHandler({'http': http_proxy, 'https': http_proxy})
+#     # construct a new opener using your proxy settings
+#     opener = urllib.request.build_opener(proxy)
+#     # install the openen on the module-level
+#     urllib.request.install_opener(opener)
 
-def get_url_paths(no, url, ext='', params={}):
+def get_url_paths(url, ext='', params={}):
+    print(url)
     response = requests.get(url, params=params)
     if response.ok:
         response_text = response.text
@@ -24,7 +25,7 @@ def get_url_paths(no, url, ext='', params={}):
     parent = [node.get('href') for node in soup.find_all('a') if node.get('href').endswith(ext)]
     return parent
 
-def download(url, filename, targetfile):
+def download(no, url, filename, targetfile):
     response = requests.get(url)
     print(f'{no}. {filename} ({len(response.content)})')
     os.makedirs(dir, exist_ok=True)
