@@ -6065,11 +6065,11 @@ void r800Execute(R800* r800) {
             r800->timeTraceBuffer[++r800->timeTraceIndex % TIME_TRACE_SIZE] = r800->systemTime;
         }
 #endif
-        if ((Int32)(r800->timeout - r800->systemTime) <= 0) {
-            if (r800->timerCb != NULL) {
-                r800->timerCb(r800->ref);
-            }
-        }
+        // if ((Int32)(r800->timeout - r800->systemTime) <= 0) {
+        //     if (r800->timerCb != NULL) {
+        //         r800->timerCb(r800->ref);
+        //     }
+        // }
         if (r800->oldCpuMode != CPU_UNKNOWN) {
             r800SwitchCpu(r800);
         }
@@ -6100,6 +6100,12 @@ void r800Execute(R800* r800) {
         int diffTime = boardSystemTime() - systemTime;
         if (r800->systemTime - boardTime < diffTime)
             r800->systemTime = boardTime + diffTime;
+
+        if ((Int32)(r800->timeout - r800->systemTime) <= 0) {
+            if (r800->timerCb != NULL) {
+                r800->timerCb(r800->ref);
+            }
+        }
 
         if (r800->regs.halt) {
 			continue;
