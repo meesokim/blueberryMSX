@@ -534,7 +534,7 @@ static void doSync(UInt32 time, int breakpointHit)
     }
     else if (execTime < 0) {
         execTime = -execTime;
-        boardTimerAdd(syncTimer, boardSystemTime() + (UInt32)((UInt64)execTime * boardFreq / 500));
+        boardTimerAdd(syncTimer, boardSystemTime() + (UInt32)((UInt64)execTime * boardFreq / 1000));
     }
     else {
         boardTimerAdd(syncTimer, time + (UInt32)((UInt64)execTime * boardFreq / 1000));
@@ -544,8 +544,7 @@ static void doSync(UInt32 time, int breakpointHit)
 static void onMixerSync(void* ref, UInt32 time)
 {
     mixerSync(boardMixer);
-
-    boardTimerAdd(mixerTimer, boardSystemTime() + boardFrequency() / 500);
+    boardTimerAdd(mixerTimer, boardSystemTime() + boardFrequency() / 1000);
 }
 
 static void onStateSync(void* ref, UInt32 time)
@@ -685,7 +684,7 @@ int boardRun(Machine* machine,
     syncToRealClock = syncCallback;
 
     videoManagerReset();
-    debugDeviceManagerReset();
+    // debugDeviceManagerReset();
 
     boardMixer      = mixer;
     boardDeviceInfo = deviceInfo;
@@ -758,7 +757,7 @@ int boardRun(Machine* machine,
         success = 0;
     }
     
-    boardCaptureInit();
+    // boardCaptureInit();
 
     if (success && loadState) {
         boardInfo.loadState();
@@ -788,8 +787,8 @@ int boardRun(Machine* machine,
             stateTimer = NULL;
         }
 
-        boardTimerAdd(syncTimer, boardSystemTime() + 10);
-        boardTimerAdd(mixerTimer, boardSystemTime() + boardFrequency() / 500);
+        boardTimerAdd(syncTimer, boardSystemTime() + 100);
+        boardTimerAdd(mixerTimer, boardSystemTime() + boardFrequency() / 2000);
         
         if (boardPeriodicCallback != NULL) {
             periodicTimer = boardTimerCreate(boardPeriodicCallback, periodicRef);

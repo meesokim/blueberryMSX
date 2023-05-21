@@ -34,6 +34,11 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+static UInt32 boardSystemTime() {
+    extern UInt32* boardSysTime;
+    return *boardSysTime;
+}
+
 typedef void (*Opcode)(R800*);
 typedef void (*OpcodeNn)(R800*, UInt16);
 
@@ -6053,7 +6058,6 @@ void r800Execute(R800* r800) {
                 r800->timerCb(r800->ref);
             }
         }
-
         if (r800->oldCpuMode != CPU_UNKNOWN) {
             r800SwitchCpu(r800);
         }
@@ -6078,7 +6082,12 @@ void r800Execute(R800* r800) {
         }
 #endif
 
+        UInt32 systemTime = boardSystemTime();
+        UInt32 boardTime = r800->systemTime;
         executeInstruction(r800, readOpcode(r800, r800->regs.PC.W++));
+        int diffTime = boardSystemTime() - systemTime;
+        if (r800->systemTime - boardTime < diffTime)
+            r800->systemTime = boardTime + diffTime;
 
         if (r800->regs.halt) {
 			continue;

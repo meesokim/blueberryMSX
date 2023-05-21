@@ -391,7 +391,6 @@ static void updateRegister(AY8910* ay8910, UInt8 regIndex, UInt8 data)
     case 4:
     case 5:
         period = ay8910->regs[regIndex & 6] | ((Int32)(ay8910->regs[regIndex | 1]) << 8);
-//        period *= (~ay8910->enable >> (address >> 1)) & 1;
         ay8910->toneStep[regIndex >> 1] = period > 0 ? BASE_PHASE_STEP / period : 1 << 31;
         break;
         

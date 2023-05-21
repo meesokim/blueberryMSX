@@ -34,7 +34,7 @@
 #include <math.h>
 
 #define BITSPERSAMPLE     16
-#define FRAGMENT_SIZE     1
+#define FRAGMENT_SIZE     4
 
 #define str2ul(s) ((UInt32)s[0]<<0|(UInt32)s[1]<<8|(UInt32)s[2]<<16|(UInt32)s[3]<<24)
 

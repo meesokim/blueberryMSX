@@ -48,6 +48,7 @@
 #include <math.h>
 #include <string.h>
 
+
 static int WaitForSync(int maxSpeed, int breakpointHit);
 
 static void*  emuThread;
@@ -480,7 +481,7 @@ void emulatorStart(const char* stateName) {
     // printf("emulatorThread:%x\n", emulatorThread);
     emuThread = archThreadCreate(emulatorThread, THREAD_PRIO_HIGH);
 
-    archEventWait(emuStartEvent, 3000);
+    archEventWait(emuStartEvent, 5000);
 
     if (emulationStartFailure) {
         archEmulationStopNotification();
@@ -496,7 +497,7 @@ void emulatorStart(const char* stateName) {
 
         strcpy(properties->emulation.machineName, machine->name);
 
-        debuggerNotifyEmulatorStart();
+        // debuggerNotifyEmulatorStart();
 
         emuState = EMU_RUNNING;
     }
