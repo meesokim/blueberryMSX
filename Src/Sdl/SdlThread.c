@@ -33,14 +33,13 @@ static int threadEntry(void* data)
 {
     void (*entryPoint)() = data;
     if (data)
-        entryPoint();
+        entryPoint(data);
     return 0;
 }
 
-
-void* archThreadCreate(void (*entryPoint)(), int priority) { 
-    // printf("entryPoint:%x\n", entryPoint);
-    SDL_Thread* sdlThread = SDL_CreateThread(threadEntry, "Emulator", entryPoint);
+void* archThreadCreate(void (*entryPoint)(), char *name, void *data) { 
+    printf("%s:%x\n", name, entryPoint);
+    SDL_Thread* sdlThread = SDL_CreateThread(entryPoint, name, data);
     return sdlThread;
 }
 

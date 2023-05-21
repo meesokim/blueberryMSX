@@ -374,7 +374,7 @@ static void emulatorPauseCb(void)
     debuggerNotifyEmulatorPause();
 }
 
-static void emulatorThread() {
+static void emulatorThread(void *data) {
     int frequency;
     int success = 0;
     int reversePeriod = 0;
@@ -479,7 +479,8 @@ void emulatorStart(const char* stateName) {
     }
 #else
     // printf("emulatorThread:%x\n", emulatorThread);
-    emuThread = archThreadCreate(emulatorThread, THREAD_PRIO_HIGH);
+    // emuThread = archThreadCreate(emulatorThread, THREAD_PRIO_HIGH);
+    emuThread = archThreadCreate(emulatorThread, "Emulator", NULL);
 
     archEventWait(emuStartEvent, 5000);
 

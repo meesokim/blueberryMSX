@@ -50,6 +50,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <time.h>
+#include "R800.h"
 
 extern void PatchReset(BoardType boardType);
 
@@ -100,6 +101,7 @@ static UInt32       periodicInterval;
 static BoardTimer*  periodicTimer;
 
 void boardTimerCleanup();
+extern void r800TimeoutCheck(R800* r800);
 
 #define HIRES_CYCLES_PER_LORES_CYCLE (UInt64)100000
 #define boardFrequency64() (HIRES_CYCLES_PER_LORES_CYCLE * boardFrequency())
@@ -799,6 +801,7 @@ int boardRun(Machine* machine,
             syncToRealClock(0, 0);
         }
 
+        archThreadCreate(r800TimeoutCheck, "Timeout", boardInfo.cpuRef);
         boardInfo.run(boardInfo.cpuRef);
 
         if (periodicTimer != NULL) {

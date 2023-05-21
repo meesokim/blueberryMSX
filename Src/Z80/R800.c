@@ -6041,6 +6041,18 @@ SystemTime r800GetTimeTrace(R800* r800, int offset) {
 #endif
 }
 
+void r800TimeoutCheck(R800* r800)
+{
+    printf("r800TimeoutCheck\n");
+    while(!r800->terminate)
+    {
+        if ((Int32)(r800->timeout - r800->systemTime) <= 0) {
+            r800->timerCb(r800->ref);
+        }
+    };
+    printf("r800TimeoutCheck finished\n");
+}
+
 void r800Execute(R800* r800) {
     static SystemTime lastRefreshTime = 0;
     while (!r800->terminate) {
