@@ -657,7 +657,7 @@ int boardRewind()
         boardTimerAdd(stateTimer, boardSystemTime() + stateFrequency);
     }
     //boardTimerAdd(syncTimer, boardSystemTime() + 1);
-    boardTimerAdd(mixerTimer, boardSystemTime() + boardFrequency() / 500);
+    boardTimerAdd(mixerTimer, boardSystemTime() + boardFrequency() / 1000);
     
     if (boardPeriodicCallback != NULL) {
         boardTimerAdd(periodicTimer, boardSystemTime() + periodicInterval);
@@ -789,8 +789,8 @@ int boardRun(Machine* machine,
             stateTimer = NULL;
         }
 
-        boardTimerAdd(syncTimer, boardSystemTime() + 100);
-        boardTimerAdd(mixerTimer, boardSystemTime() + boardFrequency() / 2000);
+        boardTimerAdd(syncTimer, boardSystemTime() + 1000);
+        boardTimerAdd(mixerTimer, boardSystemTime() + boardFrequency() / 1000);
         
         if (boardPeriodicCallback != NULL) {
             periodicTimer = boardTimerCreate(boardPeriodicCallback, periodicRef);

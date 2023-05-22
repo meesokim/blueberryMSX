@@ -545,15 +545,15 @@ static void onVint(VDP* vdp, UInt32 time)
 
     framecounter++;
 
-//    vdp->lineOffset = -1;
+    // vdp->lineOffset = -1;
     vdp->vdpStatus[0] |= 0x80;
     vdp->vdpStatus[2] |= 0x40;
-//    if (vdp->vdpVersion != VDP_TMS9929A && vdp->vdpVersion != VDP_TMS99x8A) {
+    // if (vdp->vdpVersion != VDP_TMS9929A && vdp->vdpVersion != VDP_TMS99x8A) {
         if (vdp->vdpRegs[1] & 0x20) {
             boardSetInt(INT_IE0);
         }
-//    }
-//    vdp->drawArea = 0;
+    // }
+    // vdp->drawArea = 0;
     vdpSetTimingMode(vdp->cmdEngine, vdp->vdpRegs[8] & 2);
 }
 

@@ -117,7 +117,7 @@ int getPC(){return r800->regs.PC.W;}
 
 static int getRefreshRate()
 {
-    return vdpGetRefreshRate();
+    return vdpGetRefreshRate()/2;
 }
 
 static UInt32 getTimeTrace(int offset) {
