@@ -219,14 +219,13 @@ int piInitVideo()
 	// SDL_GL_SetAttribute( SDL_GL_CONTEXT_MINOR_VERSION, 1 );
 	// SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 	wnd = SDL_CreateWindow("blueMSX", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-		1280, 960, SDL_WINDOW_OPENGL | SDL_WINDOW_BORDERLESS | SDL_WINDOW_INPUT_GRABBED);
+		600, 480, SDL_WINDOW_OPENGL | SDL_WINDOW_BORDERLESS | SDL_WINDOW_INPUT_GRABBED);
 
 	fprintf(stderr, "Connecting context to surface...\n");
 	// connect the context to the surface
 	glc = SDL_GL_CreateContext(wnd);
 	assert(glc);
 	// SDL_GL_MakeCurrent(wnd, glc);
-	// glewInit();
 	// SDL_GL_SetSwapInterval( 1 );
 	if( SDL_GL_SetSwapInterval( 1 ) < 0 )
 	{

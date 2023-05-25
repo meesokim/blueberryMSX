@@ -40,6 +40,7 @@ static int threadEntry(void* data)
 void* archThreadCreate(void (*entryPoint)(), char *name, void *data) { 
     printf("%s:%x\n", name, entryPoint);
     SDL_Thread* sdlThread = SDL_CreateThread(entryPoint, name, data);
+    SDL_DetachThread(sdlThread);
     return sdlThread;
 }
 
