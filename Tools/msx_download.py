@@ -14,14 +14,24 @@ if 'http_proxy' in os.environ:
     # install the openen on the module-level
     urllib.request.install_opener(opener)
 
-def get_url_paths(url, ext='', params={}):
+def get_url_paths(url, exts='', params={}):
+    print(url)
     response = requests.get(url, params=params)
     if response.ok:
         response_text = response.text
     else:
         return response.raise_for_status()
     soup = BeautifulSoup(response_text, 'html.parser')
-    parent = [node.get('href') for node in soup.find_all('a') if node.get('href').endswith(ext)]
+    parent = []
+    for ext in exts:
+        parent.extend([node.get('href') for node in soup.find_all('a') if node.get('href').endswith(ext)])
+    print('\n'.join(parent))
+    if url[-1] ==  '/':
+        dirs = [node.get('href') for node in soup.find_all('a') if node.get('href').endswith('/')] 
+        for dir in dirs:
+            if '..' in dir or 'http' in dir:
+                continue
+            parent.extend([dir + file for file in get_url_paths(url + dir, exts)])
     return parent
 
 def download(no, url, dir, filename, targetfile):
@@ -31,12 +41,11 @@ def download(no, url, dir, filename, targetfile):
     open(targetfile, 'wb').write(response.content)
 
 URL = 'https://download.file-hunter.com/'
-directories = ['Games/MSX1/ROM', 'Games/MSX2/ROM', 'Games/MSX2+/ROM', 'Games/MSX1/DSK', 'Games/MSX2/DSK', 'Games/MSX2+/DSK']
-ext = 'zip'
+directories = ['Games/MSX1/ROM', 'Games/MSX2/ROM', 'Games/MSX2+/ROM', 'Games/MSX1/DSK', 'Games/MSX2/DSK', 'Games/MSX2+/DSK', 'Games/Korean/']
+ext = ['zip','rom']
 with  ThreadPoolExecutor(max_workers=10) as executor:
     for dir in directories:
         url = f'{URL}{dir}'
-        print(url)
         urlcache = dir.replace('/','_') + '.lst'
         if os.path.exists(urlcache):
             result = open(urlcache).read().split('\n')
