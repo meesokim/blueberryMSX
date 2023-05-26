@@ -55,9 +55,14 @@ with  ThreadPoolExecutor(max_workers=10) as executor:
         for no, file in enumerate(result):
             filename = urllib.parse.unquote(file)
             if 'GoodMSX' in file or not '[' in filename:
-                targetfile = f'{dir}/{filename}'
+                targetfile = f'{dir}/{filename}'.replace('//','/')
+                if '/' in filename:
+                    mdir = os.path.dirname(targetfile)
+                    filename = targetfile.replace(mdir,'')[1:]
+                else:
+                    mdir = dir
                 if not os.path.exists(targetfile) or os.stat(targetfile).st_size < 1024:
-                    executor.submit(download, no, f'{url}/{file}', dir, filename, targetfile)
+                    executor.submit(download, no, f'{url}/{file}', mdir, filename, targetfile)
                 else:
                     print(f'{no}. {filename} ({os.stat(targetfile).st_size})')
             else:
