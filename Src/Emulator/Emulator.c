@@ -47,7 +47,7 @@
 #include "ArchNotifications.h"
 #include <math.h>
 #include <string.h>
-
+#include <pthread.h>  
 
 static int WaitForSync(int maxSpeed, int breakpointHit);
 
@@ -390,6 +390,10 @@ static void emulatorThread(void *data) {
         reversePeriod = 50;
         reverseBufferCnt = properties->emulation.reverseMaxTime * 1000 / reversePeriod;
     }
+    unsigned long mask = 2; 
+    if (pthread_setaffinity_np(pthread_self(), sizeof(mask), (cpu_set_t *)&mask) <0) {  
+        perror("pthread_setaffinity_np");  
+    }  
     success = boardRun(machine,
                        &deviceInfo,
                        mixer,

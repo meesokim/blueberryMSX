@@ -65,5 +65,3 @@ with  ThreadPoolExecutor(max_workers=10) as executor:
                     executor.submit(download, no, f'{url}/{file}', mdir, filename, targetfile)
                 else:
                     print(f'{no}. {filename} ({os.stat(targetfile).st_size})')
-            else:
-                print(f'[x]{no}. {filename} ')
