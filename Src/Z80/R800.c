@@ -6094,8 +6094,8 @@ void r800Execute(R800* r800) {
         }
 #endif
 
-        UInt32 systemTime = boardSystemTime();
         UInt32 boardTime = r800->systemTime;
+        UInt32 systemTime = boardSystemTime();
         executeInstruction(r800, readOpcode(r800, r800->regs.PC.W++));
 
         if ((Int32)(r800->timeout - r800->systemTime) <= 0) {
@@ -6104,9 +6104,9 @@ void r800Execute(R800* r800) {
             }
         }
 
-        int diffTime = boardSystemTime() - systemTime;
-        if (r800->systemTime - boardTime < diffTime)
-            r800->systemTime = boardTime + diffTime;
+        int sysdiff = boardSystemTime() - systemTime;
+        if (r800->systemTime - boardTime < sysdiff)
+            r800->systemTime = boardTime + sysdiff;
 
         if (r800->regs.halt) {
 			continue;
