@@ -194,9 +194,14 @@ static void writePort(R800* r800, UInt16 port, UInt8 value) {
 }
 
 static UInt8 readMem(R800* r800, UInt16 address) {
-    delayMem(r800);
+    UInt32 boardTime = boardSystemTime();
+    UInt8 byte = r800->readMemory(r800->ref, address);
     r800->cachePage = 0xffff;
-    return r800->readMemory(r800->ref, address);
+    if (boardSystemTime() - boardTime > r800->delay[DLY_MEM])
+        r800->systemTime += (boardSystemTime() - boardTime);
+    else
+        delayMem(r800);
+    return byte;
 }
 
 static UInt8 readOpcode(R800* r800, UInt16 address) {
