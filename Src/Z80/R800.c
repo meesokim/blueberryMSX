@@ -197,20 +197,28 @@ static UInt8 readMem(R800* r800, UInt16 address) {
     UInt32 boardTime = boardSystemTime();
     UInt8 byte = r800->readMemory(r800->ref, address);
     r800->cachePage = 0xffff;
-    if (boardSystemTime() - boardTime > r800->delay[DLY_MEM])
-        r800->systemTime += (boardSystemTime() - boardTime);
+    int delay = boardSystemTime() - boardTime + 1; 
+    if (delay > r800->delay[DLY_MEM])
+        r800->systemTime += delay;
     else
         delayMem(r800);
     return byte;
 }
 
 static UInt8 readOpcode(R800* r800, UInt16 address) {
-    delayMemOp(r800);
-    if ((address >> 8) ^ r800->cachePage) {
-        r800->cachePage = address >> 8;
-        delayMemPage(r800);
+    UInt32 boardTime = boardSystemTime();
+    UInt8 byte = r800->readMemory(r800->ref, address);
+    int delay = boardSystemTime() - boardTime + 1; 
+    if (delay > r800->delay[DLY_MEMOP])
+        r800->systemTime += delay;
+    else {
+        delayMemOp(r800);
+        if ((address >> 8) ^ r800->cachePage) {
+            r800->cachePage = address >> 8;
+            delayMemPage(r800);
+        }
     }
-    return r800->readMemory(r800->ref, address);
+    return byte;
 }
 
 static void writeMem(R800* r800, UInt16 address, UInt8 value) {
@@ -6048,14 +6056,14 @@ SystemTime r800GetTimeTrace(R800* r800, int offset) {
 
 void r800TimeoutCheck(R800* r800)
 {
-    printf("r800TimeoutCheck\n");
+    // printf("r800TimeoutCheck\n");
     while(!r800->terminate)
     {
         if ((Int32)(r800->timeout - r800->systemTime) <= 0) {
             r800->timerCb(r800->ref);
         }
     };
-    printf("r800TimeoutCheck finished\n");
+    // printf("r800TimeoutCheck finished\n");
 }
 
 void r800Execute(R800* r800) {
@@ -6099,19 +6107,7 @@ void r800Execute(R800* r800) {
         }
 #endif
 
-        // UInt32 boardTime = r800->systemTime;
-        // UInt32 systemTime = boardSystemTime();
         executeInstruction(r800, readOpcode(r800, r800->regs.PC.W++));
-
-        // if ((Int32)(r800->timeout - r800->systemTime) <= 0) {
-        //     if (r800->timerCb != NULL) {
-        //         r800->timerCb(r800->ref);
-        //     }
-        // }
-
-        // int sysdiff = boardSystemTime() - systemTime;
-        // if (r800->systemTime - boardTime < sysdiff)
-        //     r800->systemTime = boardTime + sysdiff;
 
         if (r800->regs.halt) {
 			continue;
