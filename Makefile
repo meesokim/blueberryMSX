@@ -37,10 +37,8 @@ endif
 
 TARGET   = bluemsx-pi
 
-SDL_CFLAGS := $(shell sdl2-config --cflags)
-SDL_LDFLAGS := $(shell sdl2-config --libs)
-
 else
+
 UNAME := $(shell uname)
 COMMON_FLAGS = -DUSE_EGL -DLSB_FIRST -DNO_FILE_HISTORY -DNO_EMBEDDED_SAMPLES -DUSE_SDL2 
 CFLAGS   = -g -w -O3 -ffast-math -fstrict-aliasing -fomit-frame-pointer $(COMMON_FLAGS)
@@ -51,16 +49,16 @@ ifneq ($(findstring MINGW64,$(UNAME)),)
 LIBS     = -lz -lpthread -lopengl32 
 endif
 ifeq ($(UNAME),Linux)
-LIBS     = -lz -lpthread -lGL -ludev
+LIBS     = -lz -lpthread -lGL -ludev -ldl
 endif
 LIBDIR   =  
 
 TARGET   = bluemsx
 
+endif 
+
 SDL_CFLAGS := $(shell sdl2-config --cflags)
 SDL_LDFLAGS := $(shell sdl2-config --libs)
-
-endif 
 
 X11_LIBDIR= /usr/X11R6/libx
 
