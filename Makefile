@@ -409,7 +409,7 @@ SOURCE_FILES += TokenExtract.c
 SOURCE_FILES += IniFileParser.c 
 SOURCE_FILES += ArrayList.c 
 
-SOURCE_FILES += Board.c 
+SOURCE_FILES += Board.cpp
 SOURCE_FILES += Machine.c 
 SOURCE_FILES += MSX.c 
 SOURCE_FILES += SVI.c 
