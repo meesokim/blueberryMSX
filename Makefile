@@ -42,8 +42,9 @@ SDL_LDFLAGS := $(shell sdl2-config --libs)
 
 else
 UNAME := $(shell uname)
-COMMON_FLAGS = -DUSE_EGL -DLSB_FIRST -DNO_FILE_HISTORY -DNO_EMBEDDED_SAMPLES -DUSE_SDL2  
+COMMON_FLAGS = -DUSE_EGL -DLSB_FIRST -DNO_FILE_HISTORY -DNO_EMBEDDED_SAMPLES -DUSE_SDL2 
 CFLAGS   = -g -w -O3 -ffast-math -fstrict-aliasing -fomit-frame-pointer $(COMMON_FLAGS)
+CXXFLAGS = -fpermissive
 CPPFLAGS = -g $(COMMON_FLAGS)
 LDFLAGS  =  
 ifneq ($(findstring MINGW64,$(UNAME)),)
@@ -497,7 +498,7 @@ $(OUTPUT_DIR)/%.o: %.cc  $(HEADER_FILES)
 
 $(OUTPUT_DIR)/%.o: %.cpp  $(HEADER_FILES)
 	$(ECHO) Compiling $<...
-	@$(CXX) $(CPPFLAGS) $(INCLUDE) -o $@ -c $<
+	@$(CXX) $(CPPFLAGS) $(INCLUDE) $(CXXFLAGS) -o $@ -c $<
 
 $(OUTPUT_DIR)/%.o: %.cxx  $(HEADER_FILES)
 	$(ECHO) Compiling $<...
