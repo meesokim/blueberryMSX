@@ -6071,8 +6071,8 @@ void r800Execute(R800* r800) {
 #endif
         if ((Int32)(r800->timeout - r800->systemTime) <= 0) {
             if (r800->timerCb != NULL) {
-                // r800->timerCb(r800->ref);
-                std::async(std::launch::async, r800->timerCb, r800->ref);
+                r800->timerCb(r800->ref);
+                // std::async(std::launch::async, r800->timerCb, r800->ref);
             }
         }
         if (r800->oldCpuMode != CPU_UNKNOWN) {

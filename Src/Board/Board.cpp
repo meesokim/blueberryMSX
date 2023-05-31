@@ -1419,8 +1419,8 @@ void boardTimerCheckTimeout(void* dummy)
         }
 
         boardTimerRemove(timer);
-        //timer->callback(timer->ref, timer->timeout);
-        std::async(std::launch::async, timer->callback, timer->ref, timer->timeout);
+        timer->callback(timer->ref, timer->timeout);
+        // std::async(std::launch::async, timer->callback, timer->ref, timer->timeout);
     }
 
     timeAnchor = boardSystemTime();    
