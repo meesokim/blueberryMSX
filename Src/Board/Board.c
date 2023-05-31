@@ -801,7 +801,6 @@ int boardRun(Machine* machine,
             syncToRealClock(0, 0);
         }
 
-        // archThreadCreate(r800TimeoutCheck, "Timeout", boardInfo.cpuRef);
         boardInfo.run(boardInfo.cpuRef);
 
         if (periodicTimer != NULL) {

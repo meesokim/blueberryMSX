@@ -191,7 +191,6 @@ static void initGL() {
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 	glEnableClientState(GL_INDEX_ARRAY);
-	// glShadeModel(GL_FLAT);
 	glOrtho(0, TEX_WIDTH, TEX_HEIGHT, 0, 1, -1);
 	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -235,6 +234,8 @@ int piInitVideo()
 	// rdr = SDL_CreateRenderer(wnd, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_TARGETTEXTURE);
 	// SDL_SetRenderDrawColor(rdr, 0xff, 0, 0, 0xff);
 	initGL();
+	return 1;
+#if 0
 	msxScreen = (char*)calloc(1, BIT_DEPTH / 8 * TEX_WIDTH * TEX_HEIGHT);
 	if (!msxScreen) {
 		fprintf(stderr, "Error allocating screen texture\n");
@@ -242,9 +243,7 @@ int piInitVideo()
 		return 0;
 	}
 	fprintf(stderr, "Initializing shaders...\n");
-	return 1;
 
-#if 0
 	// Init shader resources
 	memset(&shader, 0, sizeof(ShaderInfo));
 	shader.program = createProgram(vertexShaderSrc, fragmentShaderSrc);
@@ -302,9 +301,9 @@ void piDestroyVideo()
 
 	// Destroy shader resources
 	if (shader.program) {
-		// glDeleteProgram(shader.program);
-		// glDeleteBuffers(3, buffers);
-		// glDeleteTextures(1, textures);
+		glDeleteProgram(shader.program);
+		glDeleteBuffers(3, buffers);
+		glDeleteTextures(1, textures);
 	}
 	
 	// Release OpenGL resources

@@ -418,13 +418,11 @@ static void emulatorThread(void *data) {
 
     archEventSet(emuStartEvent);
 }
-//extern int xxxx;
 
 void emulatorStart(const char* stateName) {
     dbgEnable();
 
     archEmulationStartNotification();
-//xxxx = 0;
     emulatorResume();
 
     emuExitFlag = 0;
@@ -487,7 +485,6 @@ void emulatorStart(const char* stateName) {
     // printf("emulatorThread:%x\n", emulatorThread);
     // emuThread = archThreadCreate(emulatorThread, THREAD_PRIO_HIGH);
     emuThread = archThreadCreate(emulatorThread, "Emulator", NULL);
-
     archEventWait(emuStartEvent, 5000);
 
     if (emulationStartFailure) {

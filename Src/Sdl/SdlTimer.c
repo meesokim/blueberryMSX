@@ -77,7 +77,6 @@ void* archCreateTimer(int period, int (*timerCallback)(void*))
     timerFreq = 1000 / period;
     lastTimeout = archGetSystemUpTime(timerFreq);
     timerCb  = timerCallback;
-
     timerid = SDL_AddTimer(period, timerCalback, ("SDL"));
 
     return timerCallback;
