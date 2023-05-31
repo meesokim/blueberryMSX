@@ -439,8 +439,9 @@ SOURCE_FILES += CoinDevice.c
 SOURCE_FILES += DebugDeviceManager.c
 SOURCE_FILES += Debugger.c 
 
+ifneq ($(findstring MINGW64,$(UNAME)),)
 SOURCE_FILES += msxgr.cpp
-
+endif
 
 HEADER_FILES  =
 

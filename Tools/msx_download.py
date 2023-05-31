@@ -5,6 +5,8 @@ from bs4 import BeautifulSoup
 import ssl
 import time
 from concurrent.futures import ThreadPoolExecutor
+import urllib3
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 if 'http_proxy' in os.environ:
     http_proxy = os.environ['http_proxy']
