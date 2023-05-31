@@ -323,6 +323,7 @@ static int emuStartWithArguments(Properties* properties, char* commandLine, char
     else {
         strcat(cmdLine, commandLine);
     }
+    printf("%s\n", commandLine);
 
     // If one argument, assume it is a rom or disk to run
     if (!extractToken(cmdLine, 1)) {
@@ -531,7 +532,7 @@ static int emuStartWithArguments(Properties* properties, char* commandLine, char
 
     if (properties->cassette.rewindAfterInsert) tapeRewindNextInsert();
 
-    printf("!rom1:%s\n", rom1);
+    printf("!rom1:%s Type:%d\n", rom1, romType1);
     if (strlen(rom1)  && !insertCartridge(properties, 0, rom1, *rom1zip ? rom1zip : NULL, romType1, -1)) return 0;
     if (strlen(rom2)  && !insertCartridge(properties, 1, rom2, *rom2zip ? rom2zip : NULL, romType2, -1)) return 0;
     if (strlen(diskA) && !insertDiskette(properties, 0, diskA, *diskAzip ? diskAzip : NULL, -1)) return 0;

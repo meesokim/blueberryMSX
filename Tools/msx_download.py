@@ -8,6 +8,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 if 'http_proxy' in os.environ:
     http_proxy = os.environ['http_proxy']
+    print('http_proxy:', http_proxy)
     proxy = urllib.request.ProxyHandler({'http': http_proxy, 'https': http_proxy})
     # construct a new opener using your proxy settings
     opener = urllib.request.build_opener(proxy)
@@ -16,7 +17,7 @@ if 'http_proxy' in os.environ:
 
 def get_url_paths(url, exts='', params={}):
     print(url)
-    response = requests.get(url, params=params)
+    response = requests.get(url, params=params, verify=False)
     if response.ok:
         response_text = response.text
     else:
@@ -35,7 +36,7 @@ def get_url_paths(url, exts='', params={}):
     return parent
 
 def download(no, url, dir, filename, targetfile):
-    response = requests.get(url)
+    response = requests.get(url, verify=False)
     print(f'{no}. {filename} ({len(response.content)})')
     os.makedirs(dir, exist_ok=True)
     open(targetfile, 'wb').write(response.content)

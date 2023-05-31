@@ -1064,6 +1064,7 @@ void boardSaveState(const char* stateFile, int screenshot)
 void boardSetFrequency(int frequency)
 {
     boardFreq = frequency * (boardFrequency() / 3579545);
+    printf("frequency:%d,boardFrequency:%d\n", frequency, boardFrequency());
     printf("boardFreq:%d\n", boardFreq);
 	mixerSetBoardFrequency(frequency);
 }
@@ -1161,6 +1162,8 @@ void boardChangeCartridge(int cartNo, RomType romType, char* cart, char* cartZip
         }
     }
 
+    printf("boardChangeCartridge: romType:%d\n", romType);
+    printf("boardDeviceInfo: %d\n", boardDeviceInfo);
     if (boardDeviceInfo != NULL) {
         boardDeviceInfo->carts[cartNo].inserted = cart != NULL;
         boardDeviceInfo->carts[cartNo].type = romType;

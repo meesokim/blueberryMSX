@@ -72,7 +72,11 @@ int archFileDelete(const char* fileName)
 
 int archCreateDirectory(const char* pathname)
 {
+#ifdef __MINGW32__
+    return mkdir(pathname);
+#else
     return mkdir(pathname, 0777);
+#endif
 }
 
 const char* archGetCurrentDirectory()

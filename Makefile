@@ -46,7 +46,7 @@ COMMON_FLAGS = -DUSE_EGL -DLSB_FIRST -DNO_FILE_HISTORY -DNO_EMBEDDED_SAMPLES -DU
 CFLAGS   = -g -w -O3 -ffast-math -fstrict-aliasing -fomit-frame-pointer $(COMMON_FLAGS)
 CPPFLAGS = -g $(COMMON_FLAGS)
 LDFLAGS  =  
-LIBS     = -lz -lpthread -ludev -lGL -lEGL -ldl
+LIBS     = -lz -lpthread -lopengl32 
 LIBDIR   =  
 
 TARGET   = bluemsx
@@ -434,7 +434,7 @@ SOURCE_FILES += CoinDevice.c
 SOURCE_FILES += DebugDeviceManager.c
 SOURCE_FILES += Debugger.c 
 
-
+SOURCE_FILES += msxgr.cpp
 
 
 HEADER_FILES  =
@@ -444,6 +444,7 @@ HEADER_FILES  =
 #
 SRCS        = $(SOURCE_FILES)
 OBJS        = $(patsubst %.rc,%.res,$(patsubst %.cxx,%.o,$(patsubst %.cpp,%.o,$(patsubst %.cc,%.o,$(patsubst %.c,%.o,$(filter %.c %.cc %.cpp %.cxx %.rc,$(SRCS)))))))
+MSRCS        = $(filter %.c %.cc %.cpp, $(SRC))
 OUTPUT_OBJS = $(addprefix $(OUTPUT_DIR)/, $(OBJS))
 
 #
@@ -457,20 +458,23 @@ $(TARGET): $(OUTPUT_OBJS)
 	$(ECHO) Linking $@...
 	$(LD) -o $@ $(OUTPUT_OBJS) $(LIBS) $(LDFLAGS) $(LIB_DIR)
 
-DEPS := $(OBJS:.o=.d)
+.SUFFIXES: .dep
+DEPS := $(OBJS:.o=.dep)
 
-.c.dep:
-	$(CC) -MM -o $@ $(SRCS) $(INCLUDE) $<
+.c.dep: $(MSRCS)
+	$(CC) -MM -o $@ $(MSRCS) $(INCLUDE) $<
 
 -include $(DEPS)
 
+depend:
+	echo $(DEPS)
 # %.o: %.c
 # 	$(CC) $(CFLAGS) -MM -MF $(patsubst %.o,%.d,$@) -o $@ $<
 
 
 clean_$(TARGET):
 	$(ECHO) Cleaning files ...
-	$(RMDIR) -rf $(OUTPUT_DIR)
+	$(RMDIR) $(OUTPUT_DIR)
 	$(RM) -f $(TARGET)
 
 $(OUTPUT_DIR):

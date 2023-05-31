@@ -45,7 +45,7 @@
 #endif
 #include <SDL.h>
 #include <SDL_opengl.h>
-#include <GLES/egl.h>
+//#include <GLES/egl.h>
 typedef	struct ShaderInfo {
 	GLuint program;
 	GLint a_position;
@@ -242,8 +242,9 @@ int piInitVideo()
 		return 0;
 	}
 	fprintf(stderr, "Initializing shaders...\n");
-	// return 1;
+	return 1;
 
+#if 0
 	// Init shader resources
 	memset(&shader, 0, sizeof(ShaderInfo));
 	shader.program = createProgram(vertexShaderSrc, fragmentShaderSrc);
@@ -265,15 +266,15 @@ int piInitVideo()
 	// glBindTexture(GL_TEXTURE_2D, textures[0]);
 	// glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, TEX_WIDTH, TEX_HEIGHT, 0, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, msxScreen);
 	glUniform1i(shader.scanline, 1);
-	glGenBuffers(3, buffers);
-	glBindBuffer(GL_ARRAY_BUFFER, buffers[0]);
-	glBufferData(GL_ARRAY_BUFFER, kVertexCount * sizeof(GLfloat) * 3, vertices, GL_STATIC_DRAW);
-	glBindBuffer(GL_ARRAY_BUFFER, buffers[1]);
-	glBufferData(GL_ARRAY_BUFFER, kVertexCount * sizeof(GLfloat) * 2, uvs, GL_STATIC_DRAW);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffers[2]);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, kIndexCount * sizeof(GL_UNSIGNED_SHORT), indices, GL_STATIC_DRAW);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	// glGenBuffers(3, buffers);
+	// glBindBuffer(GL_ARRAY_BUFFER, buffers[0]);
+	// glBufferData(GL_ARRAY_BUFFER, kVertexCount * sizeof(GLfloat) * 3, vertices, GL_STATIC_DRAW);
+	// glBindBuffer(GL_ARRAY_BUFFER, buffers[1]);
+	// glBufferData(GL_ARRAY_BUFFER, kVertexCount * sizeof(GLfloat) * 2, uvs, GL_STATIC_DRAW);
+	// glBindBuffer(GL_ARRAY_BUFFER, 0);
+	// glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffers[2]);
+	// glBufferData(GL_ELEMENT_ARRAY_BUFFER, kIndexCount * sizeof(GL_UNSIGNED_SHORT), indices, GL_STATIC_DRAW);
+	// glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
 	// glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glDisable(GL_DEPTH_TEST);
@@ -287,6 +288,7 @@ int piInitVideo()
 	// can work
 	// sdlScreen = SDL_SetVideoMode(0, 0, 0, 0);//SDL_ASYNCBLIT);
 	return 1;
+#endif	
 }
 
 void piDestroyVideo()
@@ -300,9 +302,9 @@ void piDestroyVideo()
 
 	// Destroy shader resources
 	if (shader.program) {
-		glDeleteProgram(shader.program);
-		glDeleteBuffers(3, buffers);
-		glDeleteTextures(1, textures);
+		// glDeleteProgram(shader.program);
+		// glDeleteBuffers(3, buffers);
+		// glDeleteTextures(1, textures);
 	}
 	
 	// Release OpenGL resources
@@ -347,6 +349,7 @@ void piUpdateEmuDisplay()
 	draw();
 	SDL_GL_SwapWindow(wnd);
 }
+#if 0
 void piUpdateEmuDisplay2()
 {
 	int w = 0;
@@ -518,3 +521,4 @@ static void drawQuad(const ShaderInfo *sh)
 
 	glDrawElements(GL_TRIANGLES, kIndexCount, GL_UNSIGNED_SHORT, 0);
 }
+#endif

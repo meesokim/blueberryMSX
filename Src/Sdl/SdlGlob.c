@@ -25,7 +25,7 @@
 **
 ******************************************************************************
 */
-#ifdef WINDOWS_HOST
+#if defined(WINDOWS_HOST) || defined(__MINGW32__)
 
 #include "ArchGlob.h"
 #include <windows.h>

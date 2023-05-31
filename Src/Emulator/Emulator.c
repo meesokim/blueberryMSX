@@ -390,10 +390,12 @@ static void emulatorThread(void *data) {
         reversePeriod = 50;
         reverseBufferCnt = properties->emulation.reverseMaxTime * 1000 / reversePeriod;
     }
+#ifndef __MINGW32__
     unsigned long mask = 2; 
     if (pthread_setaffinity_np(pthread_self(), sizeof(mask), (cpu_set_t *)&mask) <0) {  
         perror("pthread_setaffinity_np");  
     }  
+#endif
     success = boardRun(machine,
                        &deviceInfo,
                        mixer,
