@@ -137,7 +137,10 @@ void archSoundCreate(Mixer* mixer, UInt32 sampleRate, UInt32 bufferSize, Int16 c
 			continue;
 		}
         printf("Audio driver initialized: %s\n", driver_name);
-        break;
+#if defined(__MINGW32__)
+        if (!strcmp(driver_name, "directsound"))
+#endif
+            break;
     }
 	if (SDL_OpenAudio(&desired, &audioSpec) != 0) {
 		SDL_QuitSubSystem(SDL_INIT_AUDIO);

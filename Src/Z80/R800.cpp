@@ -6077,8 +6077,8 @@ void checkTimerCallback(R800 *r800)
 
 void r800Execute(R800* r800) {
     static SystemTime lastRefreshTime = 0;
-    std::thread thread1(checkTimerCallback, r800);
-    thread1.detach();
+    // std::thread thread1(checkTimerCallback, r800);
+    // thread1.detach();
     while (!r800->terminate) {
         UInt16 address;
         int iff1 = 0;
@@ -6092,10 +6092,10 @@ void r800Execute(R800* r800) {
         if ((Int32)(r800->timeout - r800->systemTime) <= 0) {
             std::unique_lock<std::mutex> lock(sQueueLock);
             sEvent.notify_one();            
-        //     if (r800->timerCb != NULL) {
-        //         r800->timerCb(r800->ref);
-        //         // std::async(std::launch::async, r800->timerCb, r800->ref);
-        //     }
+            if (r800->timerCb != NULL) {
+                r800->timerCb(r800->ref);
+                // std::async(std::launch::async, r800->timerCb, r800->ref);
+            }
         }
         if (r800->oldCpuMode != CPU_UNKNOWN) {
             r800SwitchCpu(r800);
@@ -6185,7 +6185,6 @@ void r800Execute(R800* r800) {
             break;
         }
     }
-    thread1.join();
 }
 
 void r800ExecuteUntil(R800* r800, UInt32 endTime) {
