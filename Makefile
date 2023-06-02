@@ -37,8 +37,10 @@ endif
 
 TARGET   = bluemsx-pi
 
-else
+SDL_CFLAGS := $(shell sdl2-config --cflags)
+SDL_LDFLAGS := $(shell sdl2-config --libs)
 
+else
 UNAME := $(shell uname)
 COMMON_FLAGS = -DUSE_EGL -DLSB_FIRST -DNO_FILE_HISTORY -DNO_EMBEDDED_SAMPLES -DUSE_SDL2 
 CFLAGS   = -g -w -O3 -ffast-math -fstrict-aliasing -fomit-frame-pointer $(COMMON_FLAGS)
@@ -55,10 +57,10 @@ LIBDIR   =
 
 TARGET   = bluemsx
 
-endif 
-
 SDL_CFLAGS := $(shell sdl2-config --cflags)
 SDL_LDFLAGS := $(shell sdl2-config --libs)
+
+endif 
 
 X11_LIBDIR= /usr/X11R6/libx
 
