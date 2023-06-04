@@ -368,7 +368,7 @@ typedef struct {
 
 typedef struct {
     char type[64];
-    int typeId;
+    int  typeId;
     int  autofire;
 }  JoystickProperties;
 

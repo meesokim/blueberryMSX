@@ -328,7 +328,7 @@ SOURCE_FILES += Casette.c
 SOURCE_FILES += DirAsDisk.c 
 SOURCE_FILES += Disk.c 
 SOURCE_FILES += FdcAudio.c
-SOURCE_FILES += GameReader.c
+SOURCE_FILES += GameReader.cpp
 SOURCE_FILES += HarddiskIDE.c
 SOURCE_FILES += I8250.c
 SOURCE_FILES += I8251.c
@@ -375,7 +375,7 @@ SOURCE_FILES += Fmopl.c
 SOURCE_FILES += KeyClick.c 
 SOURCE_FILES += MameVLM5030.c 
 SOURCE_FILES += MameYM2151.c 
-SOURCE_FILES += Moonsound.c 
+SOURCE_FILES += Moonsound.cpp
 SOURCE_FILES += MsxPsg.c
 SOURCE_FILES += OpenMsxYM2413.cpp 
 SOURCE_FILES += OpenMsxYM2413_2.cpp 
@@ -444,12 +444,13 @@ HEADER_FILES  =
 #
 SRCS        = $(SOURCE_FILES)
 OBJS        = $(patsubst %.rc,%.res,$(patsubst %.cxx,%.o,$(patsubst %.cpp,%.o,$(patsubst %.cc,%.o,$(patsubst %.c,%.o,$(filter %.c %.cc %.cpp %.cxx %.rc,$(SRCS)))))))
+PSRCS 		= $(filter %.c %.cc %.cpp %.cxx %.rc,$(wildcard Src/*/*.*))
 OUTPUT_OBJS = $(addprefix $(OUTPUT_DIR)/, $(OBJS))
 
 #
 # Rules
 #
-all: $(OUTPUT_DIR) $(TARGET) 
+all: $(OUTPUT_DIR) $(TARGET) $(DEPS)
 
 clean: clean_$(TARGET)	
 
@@ -457,16 +458,22 @@ $(TARGET): $(OUTPUT_OBJS)
 	$(ECHO) Linking $@...
 	$(LD) -o $@ $(OUTPUT_OBJS) $(LIBS) $(LDFLAGS) $(LIB_DIR)
 
-DEPS := $(OBJS:.o=.d)
+DEPS:= $(SRCS:=.d)
 
-.c.dep:
-	$(CC) -MM -o $@ $(SRCS) $(INCLUDE) $<
+# depend: $(ZSRCS)
+# 	$(CC) -MM -o $@ $(ZSRCS) $(INCLUDE) $<
 
 -include $(DEPS)
 
+# %.d : $(PSRCS)
+# 	@$(CC) -MM $< > $@
+
+# -include $(patsubst %.o,%.d,$(OBJS))  
 # %.o: %.c
 # 	$(CC) $(CFLAGS) -MM -MF $(patsubst %.o,%.d,$@) -o $@ $<
-
+$(DEPS): $(SRCS)
+# $(CC) -MM -c $< $(INCLUDE) -o $<.d
+	echo makedepend $< $(INCLUDE) 
 
 clean_$(TARGET):
 	$(ECHO) Cleaning files ...
@@ -497,3 +504,4 @@ $(OUTPUT_DIR)/%.res: %.rc $(HEADER_FILES)
 	$(ECHO) Compiling $<...
 	@$(RC) $(CPPFLAGS) $(INCLUDE) -o $@ -i $<
 # DO NOT DELETE
+

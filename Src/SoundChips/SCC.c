@@ -385,7 +385,6 @@ SCC* sccCreate(Mixer* mixer)
 
     sccReset(scc);
 
-    printf("SccCreate\n");
     return scc;
 }
 

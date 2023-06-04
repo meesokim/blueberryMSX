@@ -686,7 +686,7 @@ static int WaitForSync(int maxSpeed, int breakpointHit)
 
     if (emuState != EMU_RUNNING) {
         archEventSet(emuStartEvent);
-        archThreadSleep(10);
+        archThreadSleep(100);
         emuSuspendFlag = 0;
         return emuExitFlag ? -1 : 0;
     }

@@ -199,7 +199,10 @@ static UInt8 readMem(R800* r800, UInt16 address) {
     r800->cachePage = 0xffff;
     int delay = boardSystemTime() - boardTime + 1; 
     if (delay > r800->delay[DLY_MEM])
+    {
         r800->systemTime += delay;
+        printf("%d\r", delay);
+    }
     else
         delayMem(r800);
     return byte;
