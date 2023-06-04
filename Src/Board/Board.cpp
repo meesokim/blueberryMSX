@@ -25,6 +25,8 @@
 **
 ******************************************************************************
 */
+#include <future>
+extern "C" {
 #include "Board.h"
 #include "MSX.h"
 #include "SVI.h"
@@ -801,7 +803,6 @@ int boardRun(Machine* machine,
             syncToRealClock(0, 0);
         }
 
-        // archThreadCreate(r800TimeoutCheck, "Timeout", boardInfo.cpuRef);
         boardInfo.run(boardInfo.cpuRef);
 
         if (periodicTimer != NULL) {
@@ -1036,7 +1037,7 @@ void boardSaveState(const char* stateFile, int screenshot)
     machineSaveState(boardMachine);
 
     // Call board dependent save state
-    boardInfo.saveState(stateFile);
+    // boardInfo.saveState(stateFile);
 
     if (screenshot) {
         bitmap = archScreenCapture(SC_SMALL, &size, 1);
@@ -1064,7 +1065,7 @@ void boardSaveState(const char* stateFile, int screenshot)
 void boardSetFrequency(int frequency)
 {
     boardFreq = frequency * (boardFrequency() / 3579545);
-    printf("boardFreq:%d\n", boardFreq);
+    printf("frequency:%d,boardFrequency:%d,boardFreq:%d\n", frequency, boardFrequency(), boardFreq);
 	mixerSetBoardFrequency(frequency);
 }
 
@@ -1249,7 +1250,7 @@ void boardChangeDiskette(int driveId, char* fileName, const char* fileInZipFile)
             strcpy(boardDeviceInfo->disks[driveId].inZipName, fileInZipFile ? fileInZipFile : "");
         }
     }
-	printf("boardChangeDiskette:%d,%s,%s\n", driveId, fileName, fileInZipFile);
+	// printf("boardChangeDiskette:%d,%s,%s\n", driveId, fileName, fileInZipFile);
     diskChange(driveId ,fileName, fileInZipFile);
 }
 
@@ -1419,6 +1420,7 @@ void boardTimerCheckTimeout(void* dummy)
 
         boardTimerRemove(timer);
         timer->callback(timer->ref, timer->timeout);
+        // std::async(std::launch::async, timer->callback, timer->ref, timer->timeout);
     }
 
     timeAnchor = boardSystemTime();    
@@ -1527,4 +1529,5 @@ void boardSetVideoAutodetect(int value) {
 
 int  boardGetVideoAutodetect() {
     return videoAutodetect;
+}
 }

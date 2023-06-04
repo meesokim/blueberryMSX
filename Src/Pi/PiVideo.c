@@ -45,7 +45,7 @@
 #endif
 #include <SDL.h>
 #include <SDL_opengl.h>
-#include <GLES/egl.h>
+//#include <GLES/egl.h>
 typedef	struct ShaderInfo {
 	GLuint program;
 	GLint a_position;
@@ -191,7 +191,6 @@ static void initGL() {
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 	glEnableClientState(GL_INDEX_ARRAY);
-	// glShadeModel(GL_FLAT);
 	glOrtho(0, TEX_WIDTH, TEX_HEIGHT, 0, 1, -1);
 	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -235,6 +234,8 @@ int piInitVideo()
 	// rdr = SDL_CreateRenderer(wnd, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_TARGETTEXTURE);
 	// SDL_SetRenderDrawColor(rdr, 0xff, 0, 0, 0xff);
 	initGL();
+	return 1;
+#if 0
 	msxScreen = (char*)calloc(1, BIT_DEPTH / 8 * TEX_WIDTH * TEX_HEIGHT);
 	if (!msxScreen) {
 		fprintf(stderr, "Error allocating screen texture\n");
@@ -242,7 +243,6 @@ int piInitVideo()
 		return 0;
 	}
 	fprintf(stderr, "Initializing shaders...\n");
-	// return 1;
 
 	// Init shader resources
 	memset(&shader, 0, sizeof(ShaderInfo));
@@ -265,15 +265,15 @@ int piInitVideo()
 	// glBindTexture(GL_TEXTURE_2D, textures[0]);
 	// glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, TEX_WIDTH, TEX_HEIGHT, 0, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, msxScreen);
 	glUniform1i(shader.scanline, 1);
-	glGenBuffers(3, buffers);
-	glBindBuffer(GL_ARRAY_BUFFER, buffers[0]);
-	glBufferData(GL_ARRAY_BUFFER, kVertexCount * sizeof(GLfloat) * 3, vertices, GL_STATIC_DRAW);
-	glBindBuffer(GL_ARRAY_BUFFER, buffers[1]);
-	glBufferData(GL_ARRAY_BUFFER, kVertexCount * sizeof(GLfloat) * 2, uvs, GL_STATIC_DRAW);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffers[2]);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, kIndexCount * sizeof(GL_UNSIGNED_SHORT), indices, GL_STATIC_DRAW);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	// glGenBuffers(3, buffers);
+	// glBindBuffer(GL_ARRAY_BUFFER, buffers[0]);
+	// glBufferData(GL_ARRAY_BUFFER, kVertexCount * sizeof(GLfloat) * 3, vertices, GL_STATIC_DRAW);
+	// glBindBuffer(GL_ARRAY_BUFFER, buffers[1]);
+	// glBufferData(GL_ARRAY_BUFFER, kVertexCount * sizeof(GLfloat) * 2, uvs, GL_STATIC_DRAW);
+	// glBindBuffer(GL_ARRAY_BUFFER, 0);
+	// glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffers[2]);
+	// glBufferData(GL_ELEMENT_ARRAY_BUFFER, kIndexCount * sizeof(GL_UNSIGNED_SHORT), indices, GL_STATIC_DRAW);
+	// glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
 	// glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glDisable(GL_DEPTH_TEST);
@@ -287,6 +287,7 @@ int piInitVideo()
 	// can work
 	// sdlScreen = SDL_SetVideoMode(0, 0, 0, 0);//SDL_ASYNCBLIT);
 	return 1;
+#endif	
 }
 
 void piDestroyVideo()
@@ -347,6 +348,7 @@ void piUpdateEmuDisplay()
 	draw();
 	SDL_GL_SwapWindow(wnd);
 }
+#if 0
 void piUpdateEmuDisplay2()
 {
 	int w = 0;
@@ -518,3 +520,4 @@ static void drawQuad(const ShaderInfo *sh)
 
 	glDrawElements(GL_TRIANGLES, kIndexCount, GL_UNSIGNED_SHORT, 0);
 }
+#endif

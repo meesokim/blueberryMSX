@@ -126,7 +126,9 @@ void archQuit()
 {
 	doQuit = 1;
 	SDL_Quit();
+#ifndef __MINGW32__	
 	system("sudo aconnect -x");
+#endif
 }
 
 static int floppy1LedOn = 0;
@@ -280,8 +282,10 @@ int main(int argc, char **argv)
 	int resetProperties;
 	char path[512] = "";
 	int i;
-
+	printf("arg%d:%s\n", 0, argv[0]);
 	for (i = 1; i < argc; i++) {
+		printf("arg%d:%s\n", i, argv[i]);
+
 		if (strchr(argv[i], ' ') != NULL && argv[i][0] != '\"') {
 			strcat(szLine, "\"");
 			strcat(szLine, argv[i]);
@@ -301,9 +305,9 @@ int main(int argc, char **argv)
 	resetProperties = emuCheckResetArgument(szLine);
 	strcat(path, archGetCurrentDirectory());
 	strcat(path, DIR_SEPARATOR "bluemsx.ini");
-	
+#ifndef __MINGW32__		
     system("aconnect 20:0 128:0");
-	
+#endif	
 	properties = propCreate(resetProperties, 0, P_KBD_EUROPEAN, 0, "");
 
 	if (resetProperties == 2) {
@@ -426,6 +430,7 @@ int main(int argc, char **argv)
 	boardSetMoonsoundEnable(properties->sound.chip.enableMoonsound);
 	boardSetVideoAutodetect(properties->video.detectActiveMonitor);
 
+	printf("szLine:%s\n", szLine);
 	i = emuTryStartWithArguments(properties, szLine, NULL);
 	if (i < 0) {
 		fprintf(stderr, "Failed to parse command line\n");

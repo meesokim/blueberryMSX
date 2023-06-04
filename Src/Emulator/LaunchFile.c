@@ -264,7 +264,7 @@ int insertCartridge(Properties* properties, int drive, const char* fname, const 
 			  0 == strcmp(CARTNAME_MSXBUS, 		filename) ? ROM_MSXBUS :
 			  0 == strcmp(CARTNAME_MSXDRIVE, 	filename) ? ROM_MSXDRIVE :
               romType;
-
+    printf("RomType:%d, filename=%s, romName=%s\n", romType, filename, romName);
     if (drive == 0) {
         strcpy(properties->media.carts[0].fileName, filename);
         strcpy(properties->media.carts[0].fileNameInZip, romName);

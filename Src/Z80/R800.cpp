@@ -30,9 +30,16 @@
 ******************************************************************************
 */
 
+extern "C" {
 #include "R800.h"
+}
 #include <stdlib.h>
 #include <stdio.h>
+#include <future>
+#include <thread>
+#include <mutex>
+#include <queue>
+static std::mutex sQueueLock;
 
 static UInt32 boardSystemTime() {
     extern UInt32* boardSysTime;
@@ -5857,7 +5864,7 @@ R800* r800Create(UInt32 cpuFlags,
                  R800WriteCb watchpointIoCb,
                  void* ref)
 {
-    R800* r800 = calloc(1, sizeof(R800));
+    R800* r800 = (R800*)calloc(1, sizeof(R800));
     
     r800->cpuFlags    = cpuFlags;
 
@@ -6057,20 +6064,24 @@ SystemTime r800GetTimeTrace(R800* r800, int offset) {
 #endif
 }
 
-void r800TimeoutCheck(R800* r800)
+static std::condition_variable sEvent;
+
+void checkTimerCallback(R800 *r800)
 {
-    // printf("r800TimeoutCheck\n");
+    printf("thread started\n");
     while(!r800->terminate)
     {
-        if ((Int32)(r800->timeout - r800->systemTime) <= 0) {
-            r800->timerCb(r800->ref);
-        }
-    };
-    // printf("r800TimeoutCheck finished\n");
+        std::unique_lock<std::mutex> lock(sQueueLock);
+        sEvent.wait(lock);
+        r800->timerCb(r800->ref);
+    }
+    printf("thread terminated\n");
 }
 
 void r800Execute(R800* r800) {
     static SystemTime lastRefreshTime = 0;
+    // std::thread thread1(checkTimerCallback, r800);
+    // thread1.detach();
     while (!r800->terminate) {
         UInt16 address;
         int iff1 = 0;
@@ -6082,8 +6093,11 @@ void r800Execute(R800* r800) {
         }
 #endif
         if ((Int32)(r800->timeout - r800->systemTime) <= 0) {
+            std::unique_lock<std::mutex> lock(sQueueLock);
+            sEvent.notify_one();            
             if (r800->timerCb != NULL) {
                 r800->timerCb(r800->ref);
+                // std::async(std::launch::async, r800->timerCb, r800->ref);
             }
         }
         if (r800->oldCpuMode != CPU_UNKNOWN) {

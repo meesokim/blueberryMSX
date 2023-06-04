@@ -37,24 +37,28 @@ endif
 
 TARGET   = bluemsx-pi
 
-SDL_CFLAGS := $(shell sdl2-config --cflags)
-SDL_LDFLAGS := $(shell sdl2-config --libs)
-
 else
 
-COMMON_FLAGS = -DUSE_EGL -DLSB_FIRST -DNO_FILE_HISTORY -DNO_EMBEDDED_SAMPLES -DUSE_SDL2  
+UNAME := $(shell uname)
+COMMON_FLAGS = -DUSE_EGL -DLSB_FIRST -DNO_FILE_HISTORY -DNO_EMBEDDED_SAMPLES -DUSE_SDL2 
 CFLAGS   = -g -w -O3 -ffast-math -fstrict-aliasing -fomit-frame-pointer $(COMMON_FLAGS)
+CXXFLAGS = -fpermissive
 CPPFLAGS = -g $(COMMON_FLAGS)
 LDFLAGS  =  
-LIBS     = -lz -lpthread -ludev -lGL -lEGL -ldl
+ifneq ($(findstring MINGW64,$(UNAME)),)
+LIBS     = -lz -lpthread -lopengl32 
+endif
+ifeq ($(UNAME),Linux)
+LIBS     = -lz -lpthread -lGL -ludev -ldl
+endif
 LIBDIR   =  
 
 TARGET   = bluemsx
 
+endif 
+
 SDL_CFLAGS := $(shell sdl2-config --cflags)
 SDL_LDFLAGS := $(shell sdl2-config --libs)
-
-endif 
 
 X11_LIBDIR= /usr/X11R6/libx
 
@@ -319,7 +323,7 @@ SOURCE_FILES += hq2x.c
 SOURCE_FILES += hq3x.c 
 SOURCE_FILES += Scalebit.c 
 
-SOURCE_FILES += R800.c 
+SOURCE_FILES += R800.cpp
 SOURCE_FILES += R800Debug.c
 SOURCE_FILES += R800Dasm.c 
 SOURCE_FILES += R800SaveState.c 
@@ -405,7 +409,7 @@ SOURCE_FILES += TokenExtract.c
 SOURCE_FILES += IniFileParser.c 
 SOURCE_FILES += ArrayList.c 
 
-SOURCE_FILES += Board.c 
+SOURCE_FILES += Board.cpp
 SOURCE_FILES += Machine.c 
 SOURCE_FILES += MSX.c 
 SOURCE_FILES += SVI.c 
@@ -434,8 +438,9 @@ SOURCE_FILES += CoinDevice.c
 SOURCE_FILES += DebugDeviceManager.c
 SOURCE_FILES += Debugger.c 
 
-
-
+ifneq ($(findstring MINGW64,$(UNAME)),)
+SOURCE_FILES += msxgr.cpp
+endif
 
 HEADER_FILES  =
 
@@ -444,7 +449,11 @@ HEADER_FILES  =
 #
 SRCS        = $(SOURCE_FILES)
 OBJS        = $(patsubst %.rc,%.res,$(patsubst %.cxx,%.o,$(patsubst %.cpp,%.o,$(patsubst %.cc,%.o,$(patsubst %.c,%.o,$(filter %.c %.cc %.cpp %.cxx %.rc,$(SRCS)))))))
+<<<<<<< HEAD
 PSRCS 		= $(filter %.c %.cc %.cpp %.cxx %.rc,$(wildcard Src/*/*.*))
+=======
+MSRCS        = $(filter %.c %.cc %.cpp, $(SRC))
+>>>>>>> ff362c64dc894f4930a2a88de6e6b9de277f143f
 OUTPUT_OBJS = $(addprefix $(OUTPUT_DIR)/, $(OBJS))
 
 #
@@ -458,6 +467,7 @@ $(TARGET): $(OUTPUT_OBJS)
 	$(ECHO) Linking $@...
 	$(LD) -o $@ $(OUTPUT_OBJS) $(LIBS) $(LDFLAGS) $(LIB_DIR)
 
+<<<<<<< HEAD
 DEPS:= $(SRCS:=.d)
 
 # depend: $(ZSRCS)
@@ -469,6 +479,18 @@ DEPS:= $(SRCS:=.d)
 # 	@$(CC) -MM $< > $@
 
 # -include $(patsubst %.o,%.d,$(OBJS))  
+=======
+.SUFFIXES: .dep
+DEPS := $(OBJS:.o=.dep)
+
+.c.dep: $(MSRCS)
+	$(CC) -MM -o $@ $(MSRCS) $(INCLUDE) $<
+
+-include $(DEPS)
+
+depend:
+	echo $(DEPS)
+>>>>>>> ff362c64dc894f4930a2a88de6e6b9de277f143f
 # %.o: %.c
 # 	$(CC) $(CFLAGS) -MM -MF $(patsubst %.o,%.d,$@) -o $@ $<
 $(DEPS): $(SRCS)
@@ -477,7 +499,7 @@ $(DEPS): $(SRCS)
 
 clean_$(TARGET):
 	$(ECHO) Cleaning files ...
-	$(RMDIR) -rf $(OUTPUT_DIR)
+	$(RMDIR) $(OUTPUT_DIR)
 	$(RM) -f $(TARGET)
 
 $(OUTPUT_DIR):
@@ -494,7 +516,7 @@ $(OUTPUT_DIR)/%.o: %.cc  $(HEADER_FILES)
 
 $(OUTPUT_DIR)/%.o: %.cpp  $(HEADER_FILES)
 	$(ECHO) Compiling $<...
-	@$(CXX) $(CPPFLAGS) $(INCLUDE) -o $@ -c $<
+	@$(CXX) $(CPPFLAGS) $(INCLUDE) $(CXXFLAGS) -o $@ -c $<
 
 $(OUTPUT_DIR)/%.o: %.cxx  $(HEADER_FILES)
 	$(ECHO) Compiling $<...
