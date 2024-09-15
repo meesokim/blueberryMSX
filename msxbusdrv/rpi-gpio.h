@@ -40,8 +40,8 @@
     #define GPIO_BASE       0x3F200000UL
     #define CLOCK_BASE      0x3F101000UL
 #elif RASPPI==4
-    #define GPIO_BASE	    0xFE000000UL
-    #define CLOCK_BASE	    (GPIO_BASE + 0x101000)
+    #define GPIO_BASE	    0xFE200000UL
+    #define CLOCK_BASE	    0xFE101000UL
 #else
     #define GPIO_BASE       0x20200000UL
     #define CLOCK_BASE      0x20101000UL
