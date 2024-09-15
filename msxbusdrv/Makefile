@@ -11,6 +11,7 @@ endif
 
 CC=$(PREFIX)gcc
 CXX=$(PREFIX)g++
+RASPPI=`cat /proc/device-tree/model | awk '{ print $3 }'`
 
 all: test
 	make ARCH=arm $(COMPILE) -C $(KERNEL) M=$(PWD) modules
