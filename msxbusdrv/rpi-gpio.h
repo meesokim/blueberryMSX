@@ -32,13 +32,16 @@
 #define RPI_GPIO_H
 
 #ifndef RASPPI
-#define RASPPI 3
+#define RASPPI 4
 #endif
 
 /* The base address of the GPIO peripheral (ARM Physical Address) */
 #if RASPPI==2 || RASPPI==3
     #define GPIO_BASE       0x3F200000UL
     #define CLOCK_BASE      0x3F101000UL
+#elif RASPPI==4
+    #define GPIO_BASE	    0xFE000000UL
+    #define CLOCK_BASE	    (GPIO_BASE + 0x101000)
 #else
     #define GPIO_BASE       0x20200000UL
     #define CLOCK_BASE      0x20101000UL
