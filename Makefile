@@ -49,7 +49,7 @@ ifneq ($(findstring MINGW64,$(UNAME)),)
 LIBS     = -lz -lpthread -lopengl32 
 endif
 ifeq ($(UNAME),Linux)
-LIBS     = -lz -lpthread -lGL -ludev -ldl
+LIBS     = -lSDL2 -lz -lpthread -lGL -ludev -ldl
 endif
 LIBDIR   =  
 
@@ -449,11 +449,7 @@ HEADER_FILES  =
 #
 SRCS        = $(SOURCE_FILES)
 OBJS        = $(patsubst %.rc,%.res,$(patsubst %.cxx,%.o,$(patsubst %.cpp,%.o,$(patsubst %.cc,%.o,$(patsubst %.c,%.o,$(filter %.c %.cc %.cpp %.cxx %.rc,$(SRCS)))))))
-<<<<<<< HEAD
 PSRCS 		= $(filter %.c %.cc %.cpp %.cxx %.rc,$(wildcard Src/*/*.*))
-=======
-MSRCS        = $(filter %.c %.cc %.cpp, $(SRC))
->>>>>>> ff362c64dc894f4930a2a88de6e6b9de277f143f
 OUTPUT_OBJS = $(addprefix $(OUTPUT_DIR)/, $(OBJS))
 
 #
@@ -467,19 +463,6 @@ $(TARGET): $(OUTPUT_OBJS)
 	$(ECHO) Linking $@...
 	$(LD) -o $@ $(OUTPUT_OBJS) $(LIBS) $(LDFLAGS) $(LIB_DIR)
 
-<<<<<<< HEAD
-DEPS:= $(SRCS:=.d)
-
-# depend: $(ZSRCS)
-# 	$(CC) -MM -o $@ $(ZSRCS) $(INCLUDE) $<
-
--include $(DEPS)
-
-# %.d : $(PSRCS)
-# 	@$(CC) -MM $< > $@
-
-# -include $(patsubst %.o,%.d,$(OBJS))  
-=======
 .SUFFIXES: .dep
 DEPS := $(OBJS:.o=.dep)
 
@@ -489,13 +472,11 @@ DEPS := $(OBJS:.o=.dep)
 -include $(DEPS)
 
 depend:
-	echo $(DEPS)
->>>>>>> ff362c64dc894f4930a2a88de6e6b9de277f143f
 # %.o: %.c
 # 	$(CC) $(CFLAGS) -MM -MF $(patsubst %.o,%.d,$@) -o $@ $<
 $(DEPS): $(SRCS)
 # $(CC) -MM -c $< $(INCLUDE) -o $<.d
-	echo makedepend $< $(INCLUDE) 
+	@makedepend $< $(INCLUDE) 
 
 clean_$(TARGET):
 	$(ECHO) Cleaning files ...

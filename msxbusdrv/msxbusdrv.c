@@ -63,7 +63,7 @@ volatile unsigned int* gpio;
 volatile unsigned int* gclk;
 
 
-static int dev_uevent(struct device *dev, struct kobj_uevent_env *env)
+static int dev_uevent(const struct device *dev, struct kobj_uevent_env *env)
 {
     add_uevent_var(env, "DEVMODE=%#o", 0666);
     return 0;
@@ -100,7 +100,7 @@ static int __init msxbus_init(void){
    printk(KERN_INFO "MSX Bus: registered correctly with major number %d\n", majorNumber);
  
    // Register the device class
-   msxbusClass = class_create(THIS_MODULE, CLASS_NAME);
+   msxbusClass = class_create(CLASS_NAME);
    if (IS_ERR(msxbusClass)){                // Check for error and clean up if there is
       unregister_chrdev(majorNumber, DEVICE_NAME);
       printk(KERN_ALERT "Failed to register device class\n");
