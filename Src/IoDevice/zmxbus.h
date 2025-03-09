@@ -1,19 +1,20 @@
-#ifndef ZMXBUS_HH
-#define ZMXBUS_HH
-
-enum {
-    RD_MEM, RD_SLOT1, RD_SLOT2, RD_IO,
-    WR_MEM, WR_SLOT1, WR_SLOT2, WR_IO
-};
-
 #define MSXREAD "msxread"
 #define MSXWRITE "msxwrite"
 #define MSXRESET "reset"
+#define MSXSTATUS "msxstatus"
 #define MSXINIT "init"
 
 typedef unsigned char (*ReadfnPtr)(int, unsigned short);
 typedef void (*WritefnPtr)(int, unsigned short, unsigned char);
+typedef void (*ResetfnPtr)(char );
 typedef void (*InitfnPtr)(char *);
-typedef void (*ResetfnPtr)(void);
+typedef unsigned char (*StatusfnPtr)(void);
 
-#endif
+#define RD_SLTSL1 0x00
+#define RD_SLTSL2 0x10
+#define RD_MEM    0x20
+#define RD_IO     0x02
+#define WR_SLTSL1 0x01
+#define WR_SLTSL2 0x11
+#define WR_MEM    0x21
+#define WR_IO     0x03

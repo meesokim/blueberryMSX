@@ -1,13 +1,13 @@
 /*****************************************************************************
-** $Source: /cygdrive/d/Private/_SVNROOT/bluemsx/blueMSX/Src/Memory/romMapperGameReader.c,v $
+** $Source: /cygdrive/d/Private/_SVNROOT/bluemsx/blueMSX/Src/Memory/romMapperMsxBus.c,v $
 **
 ** $Revision: 1.8 $
 **
-** $Date: 2008-03-30 18:38:44 $
+** $Date: 2025-03-09 18:38:44 $
 **
 ** More info: http://www.bluemsx.com
 **
-** Copyright (C) 2003-2006 Daniel Vik
+** Copyright (C) 2018-2025 Miso Kim
 **
 ** This program is free software; you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
@@ -53,6 +53,7 @@ static ReadfnPtr msxread;
 static WritefnPtr msxwrite;
 static InitfnPtr msxinit;
 static ResetfnPtr resetz;	
+static StatusfnPtr msxstatus;
 static void *hDLL = 0;	
 
 static void saveState(RomMapperMsxBus* rm)
@@ -96,7 +97,7 @@ static UInt8 read(RomMapperMsxBus* rm, UInt16 address)
         return sccRead(rm->scc, (UInt8)(address & 0xff));
     }
 #endif	
-    return msxread(RD_SLOT1+rm->cart, address);
+    return msxread(rm->cart ? RD_SLTSL2 : RD_SLTSL1, address);
 }
 
 static void write(RomMapperMsxBus* rm, UInt16 address, UInt8 value) 
@@ -110,21 +111,22 @@ static void write(RomMapperMsxBus* rm, UInt16 address, UInt8 value)
         sccWrite(rm->scc, address & 0xff, value);
     }
 #endif
-    return msxwrite(WR_SLOT1+rm->cart, address, value);
+    return msxwrite(rm->cart ? WR_SLTSL2 : WR_SLTSL1, address, value);
 }
 
 static void reset(RomMapperMsxBus* rm)
 {
     printf("reset of RomMapperMsxBus\n");
     // sccReset(rm->scc);
-    sleep(5);
-    resetz();
+    resetz(0);
+    sleep(1);
+    resetz(1);
 }
 
 
 static const int mon_ports[] = {}; // 0x7c, 0x7d, 0x7e, 0x7f, 0xa0, 0xa1, 0xa2, 0xa3, 0 };
 
-#define ZMX_DRIVER "./zmxbus" ZEMMIX_EXT 
+#define ZMX_DRIVER ZEMMIX_BUS
 
 static void initialize() {
     if (hDLL)
@@ -138,9 +140,12 @@ static void initialize() {
     msxread = (ReadfnPtr)GetZemmixFunc(hDLL, (char*)MSXREAD);
     msxwrite = (WritefnPtr)GetZemmixFunc(hDLL, (char*)MSXWRITE);
     msxinit = (InitfnPtr)GetZemmixFunc(hDLL, (char*)MSXINIT);
-    resetz = (ResetfnPtr)GetZemmixFunc(hDLL, (char*)MSXRESET);            
+    resetz = (ResetfnPtr)GetZemmixFunc(hDLL, (char*)MSXRESET);   
+    msxstatus = (StatusfnPtr)GetZemmixFunc(hDLL, (char*)MSXSTATUS);         
     msxinit(0);
-    resetz();		
+    resetz(0);
+    sleep(1);
+    resetz(1);		
 }
 
 int romMapperMsxBusCreate(int cartSlot, int slot, int sslot) 

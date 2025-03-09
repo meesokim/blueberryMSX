@@ -467,16 +467,17 @@ $(TARGET): $(OUTPUT_OBJS)
 DEPS := $(OBJS:.o=.dep)
 
 .c.dep: $(MSRCS)
-	$(CC) -MM -o $@ $(MSRCS) $(INCLUDE) $<
+	@$(CC) -MM -o objs/$@ $(MSRCS) $(INCLUDE) $<
 
 -include $(DEPS)
 
 depend:
-# %.o: %.c
-# 	$(CC) $(CFLAGS) -MM -MF $(patsubst %.o,%.d,$@) -o $@ $<
-$(DEPS): $(SRCS)
+%.o: %.c
+	@$(CC) $(CFLAGS) -MM -MF $(patsubst %.o,%.d,$@) -o $@ $<
+
+#$(DEPS): $(SRCS)
 # $(CC) -MM -c $< $(INCLUDE) -o $<.d
-	@makedepend $< $(INCLUDE) 
+#	@makedepend $< $(INCLUDE) 
 
 clean_$(TARGET):
 	$(ECHO) Cleaning files ...
@@ -507,4 +508,3 @@ $(OUTPUT_DIR)/%.res: %.rc $(HEADER_FILES)
 	$(ECHO) Compiling $<...
 	@$(RC) $(CPPFLAGS) $(INCLUDE) -o $@ -i $<
 # DO NOT DELETE
-
