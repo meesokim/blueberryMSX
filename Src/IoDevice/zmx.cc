@@ -1,8 +1,8 @@
 #define DLL_EXPORTS
-#include "zmx.h"
 #include <string>
 
 extern "C" {
+#include "zmx.h"
     void *OpenZemmix(char *pcDllname, int iMode = 2)
     {
         #if defined(_MSC_VER) || defined(_MINGW32) || defined(__MINGW32__) || defined(WIN32) || defined(WIN64)

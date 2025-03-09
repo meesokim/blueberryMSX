@@ -97,7 +97,13 @@ static UInt8 read(RomMapperMsxBus* rm, UInt16 address)
         return sccRead(rm->scc, (UInt8)(address & 0xff));
     }
 #endif	
-    return msxread(rm->cart ? RD_SLTSL2 : RD_SLTSL1, address);
+    UInt8 ret;
+    if (address > 0xbfff)
+	ret = 0xff;
+    else
+        ret = msxread(rm->cart > 1 ? RD_SLTSL2 : RD_SLTSL1, address);
+    //printf("r%04x: %02x\n", address, ret);
+    return ret;
 }
 
 static void write(RomMapperMsxBus* rm, UInt16 address, UInt8 value) 
@@ -111,7 +117,8 @@ static void write(RomMapperMsxBus* rm, UInt16 address, UInt8 value)
         sccWrite(rm->scc, address & 0xff, value);
     }
 #endif
-    return msxwrite(rm->cart ? WR_SLTSL2 : WR_SLTSL1, address, value);
+    printf("w%04x: %02x\n", address, value);
+    return msxwrite(rm->cart > 1 ? WR_SLTSL2 : WR_SLTSL1, address, value);
 }
 
 static void reset(RomMapperMsxBus* rm)
@@ -170,9 +177,10 @@ int romMapperMsxBusCreate(int cartSlot, int slot, int sslot)
     }
     for(i = 1; i < 255; i++)
         ioPortRegisterUnused(i, readIo, writeIo, rm);
-    //printf("MSXBus created. cartSlot=%d slot=%d sslot=%d\n", cartSlot, slot, sslot);
+    printf("MSXBus created. cartSlot=%d slot=%d sslot=%d\n", cartSlot, slot, sslot);
     for(i = 0; mon_ports[i] > 0; i++)
         ioMonPortRegister(mon_ports[i], NULL, writeIo, rm);
+    resetz(1);
     return 1;
 }
 

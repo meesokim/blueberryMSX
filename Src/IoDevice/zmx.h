@@ -17,10 +17,9 @@
     #error define your compiler
 #endif
 
-extern "C" {
-    void *OpenZemmix(char *pcDllname, int iMode);
-    void *GetZemmixFunc(void *Lib, char *Fnname);
-    int CloseZemmix(void *hDLL);
-    char *GetZemmixError();    
-}
+void *OpenZemmix(char *pcDllname, int iMode);
+void *GetZemmixFunc(void *Lib, char *Fnname);
+int CloseZemmix(void *hDLL);
+char *GetZemmixError();    
+
 #endif

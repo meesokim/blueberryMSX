@@ -1,3 +1,2 @@
 #!/bin/bash
-cd /home/msx/blueMSX
-./bluemsx-pi /machine "MSX - Daewoo DPC-200"  /romtype2 msxbus $@
+./bluemsx /machine "MSX - Daewoo DPC-200"  /romtype1 msxbus $@
