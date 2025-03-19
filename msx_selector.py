@@ -269,8 +269,11 @@ class MSXSelector:
         pygame.quit()
         return None
 
+import os
+
 if __name__ == "__main__":
     selector = MSXSelector()
     selected_machine = selector.run()
     if selected_machine:
         print(f"Final selection: {selected_machine}")
+        os.system(f'./bluemsx-pi /machine "{selected_machine}" /romtype1 msxbus /romtype2 msxbus')
