@@ -6,8 +6,10 @@ import random  # 추가
 class MSXSelector:
     def __init__(self):
         pygame.init()
-        self.screen_width = 1024
-        self.screen_height = 768
+        # Get the current display info
+        display_info = pygame.display.Info()
+        self.screen_width = display_info.current_w
+        self.screen_height = display_info.current_h
         self.screen = pygame.display.set_mode((self.screen_width, self.screen_height))
         pygame.display.set_caption("MSX Machine Selector")
 
@@ -15,8 +17,10 @@ class MSXSelector:
         available_fonts = pygame.font.get_fonts()
         preferred_fonts = ["khmerossystem", 'arial', 'helvetica', 'segoeui', 'malgun']
         self.font_name = next((f for f in preferred_fonts if f in available_fonts), available_fonts[0])
-        self.font = pygame.font.SysFont(self.font_name, 48)
-        self.button_font = pygame.font.SysFont(self.font_name, 24)
+        # Adjust font sizes for fullscreen
+        base_font_size = int(self.screen_height * 0.0625)  # 6.25% of screen height
+        self.font = pygame.font.SysFont(self.font_name, base_font_size)
+        self.button_font = pygame.font.SysFont(self.font_name, int(base_font_size * 0.5))
 
         # Load images and prepare categories
         self.images_dir = "images"
@@ -159,7 +163,7 @@ class MSXSelector:
             # Draw rounded rectangle
             rect = button['rect']
             radius = button['radius']
-            pygame.draw.rect(self.screen, color, rect, border_radius=radius)
+            pygame.draw.rect(self.screen, color, rect) #, border_radius=radius)
             
             # Draw main text
             text = self.button_font.render(button['text'], True, (0, 0, 0))
@@ -227,7 +231,7 @@ class MSXSelector:
         running = True
         while running:
             for event in pygame.event.get():
-                if event.type == pygame.QUIT:
+                if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
                     running = False
                 elif event.type == pygame.MOUSEBUTTONDOWN:
                     if event.button == 1:
@@ -239,8 +243,10 @@ class MSXSelector:
                                 break
                         else:
                             # Handle machine selection click
-                            print(f"Selected: {self.image_names[self.filtered_indices[self.current_index]]}")
-                            return self.image_names[self.filtered_indices[self.current_index]]
+                            selected_machine = self.image_names[self.filtered_indices[self.current_index]]
+                            print(f"Selected: {selected_machine}")
+                            os.system(f'./bluemsx-pi /machine "{selected_machine}" /romtype1 msxbus /romtype2 msxbus')
+                            # return selected_machine
                 elif event.type == pygame.KEYDOWN:
                     # 숫자키 1-9로 카테고리 선택
                     if event.unicode.isdigit() and event.unicode != '0':
