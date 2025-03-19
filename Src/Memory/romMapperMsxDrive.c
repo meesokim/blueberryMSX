@@ -104,7 +104,7 @@ static UInt8 read(RomMapperMsxDrive* rm, UInt16 address)
     }
 #endif	
     // printf("msxread(slot:%d,address=%x)\n", rm->slot, address);
-    return msxread(RD_SLOT1+rm->cart, address);
+    return msxread(rm->cart > 1 ? RD_SLTSL2 : RD_SLTSL1, address);
 }
 
 static void write(RomMapperMsxDrive* rm, UInt16 address, UInt8 value) 
@@ -119,14 +119,14 @@ static void write(RomMapperMsxDrive* rm, UInt16 address, UInt8 value)
     }
 #endif
     // printf("msxwrite(slot:%d,address=%04x,value=%02x)\n", rm->slot, address, value);
-    return msxwrite(WR_SLOT1+rm->cart, address, value);
+    return msxwrite(rm->cart > 1 ? WR_SLTSL2 : WR_SLTSL1, address, value);
 }
 
 static void reset(RomMapperMsxDrive* rm)
 {
     printf("reset of RomMapperMsxDrive\n");
     // sccReset(rm->scc);
-    resetz();
+    resetz(5);
 }
 
 static const int mon_ports[] = {}; // 0x7c, 0x7d, 0x7e, 0x7f, 0xa0, 0xa1, 0xa2, 0xa3, 0 };
@@ -136,10 +136,10 @@ static const int mon_ports[] = {}; // 0x7c, 0x7d, 0x7e, 0x7f, 0xa0, 0xa1, 0xa2, 
 static void initialize() {
     if (hDLL)
         CloseZemmix(hDLL);
-    hDLL = OpenZemmix((char*)ZMX_DRIVER, RTLD_LAZY);
+    hDLL = OpenZemmix((char*)ZEMMIX_DRIVE, RTLD_LAZY);
     if (!hDLL)
     {
-        printf("DLL open error!! %s\n", ZMX_DRIVER);
+        printf("DLL open error!! %s\n", ZEMMIX_DRIVE);
         exit(1);
     }	
     msxread = (ReadfnPtr)GetZemmixFunc(hDLL, (char*)MSXREAD);
@@ -147,7 +147,7 @@ static void initialize() {
     msxinit = (InitfnPtr)GetZemmixFunc(hDLL, (char*)MSXINIT);
     resetz = (ResetfnPtr)GetZemmixFunc(hDLL, (char*)MSXRESET);            
     msxinit("./sdcard");
-    resetz();		
+    resetz(5);		
 }
 
 int romMapperMsxDriveCreate(int cartSlot, int slot, int sslot) 

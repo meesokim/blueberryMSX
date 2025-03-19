@@ -125,15 +125,13 @@ static void reset(RomMapperMsxBus* rm)
 {
     printf("reset of RomMapperMsxBus\n");
     // sccReset(rm->scc);
-    resetz(0);
-    sleep(1);
-    resetz(1);
+    resetz(5);
 }
 
 
 static const int mon_ports[] = {}; // 0x7c, 0x7d, 0x7e, 0x7f, 0xa0, 0xa1, 0xa2, 0xa3, 0 };
 
-#define ZMX_DRIVER ZEMMIX_BUS
+#define ZMX_DRIVER ZEMMIX_DRIVE
 
 static void initialize() {
     if (hDLL)

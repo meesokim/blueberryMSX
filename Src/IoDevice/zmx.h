@@ -20,6 +20,6 @@
 void *OpenZemmix(char *pcDllname, int iMode);
 void *GetZemmixFunc(void *Lib, char *Fnname);
 int CloseZemmix(void *hDLL);
-char *GetZemmixError();    
+char *GetZemmixError();
 
 #endif
