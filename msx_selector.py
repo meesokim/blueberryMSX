@@ -61,6 +61,8 @@ class MSXSelector:
                     self.images.append(image)
                     self.image_names.append(filename.replace('_', ' ').rsplit('.', 1)[0])
                 except:
+                    import traceback
+                    traceback.print_exc()
                     print(f"Failed to load {filename}")
         
         self.filtered_indices = list(range(len(self.images)))
