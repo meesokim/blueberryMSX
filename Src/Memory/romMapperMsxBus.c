@@ -117,7 +117,7 @@ static void write(RomMapperMsxBus* rm, UInt16 address, UInt8 value)
         sccWrite(rm->scc, address & 0xff, value);
     }
 #endif
-    printf("w%04x: %02x\n", address, value);
+    // printf("w%04x: %02x\n", address, value);
     return msxwrite(rm->cart > 1 ? WR_SLTSL2 : WR_SLTSL1, address, value);
 }
 
@@ -131,7 +131,7 @@ static void reset(RomMapperMsxBus* rm)
 
 static const int mon_ports[] = {}; // 0x7c, 0x7d, 0x7e, 0x7f, 0xa0, 0xa1, 0xa2, 0xa3, 0 };
 
-#define ZMX_DRIVER ZEMMIX_DRIVE
+#define ZMX_DRIVER ZEMMIX_BUS
 
 static void initialize() {
     if (hDLL)

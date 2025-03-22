@@ -210,7 +210,7 @@ int piInitVideo()
 		video->scanLinesEnable = 0;
 
 	SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO);
-    SDL_ShowCursor(SDL_DISABLE);
+    	SDL_ShowCursor(SDL_DISABLE);
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
 	fprintf(stderr, "Initializing window surface...\n");
