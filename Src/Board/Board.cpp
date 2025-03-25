@@ -1065,8 +1065,8 @@ void boardSaveState(const char* stateFile, int screenshot)
 void boardSetFrequency(int frequency)
 {
     boardFreq = frequency * (boardFrequency() / 3579545);
-    printf("frequency:%d,boardFrequency:%d,boardFreq:%d\n", frequency, boardFrequency(), boardFreq);
-	mixerSetBoardFrequency(frequency);
+    // printf("frequency:%d,boardFrequency:%d,boardFreq:%d\n", frequency, boardFrequency(), boardFreq);
+// 	mixerSetBoardFrequency(frequency);
 }
 
 int boardGetRefreshRate()

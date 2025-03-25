@@ -31,6 +31,11 @@
 
 void piInputResetJoysticks();
 void piInputResetMSXDevices(int realMice, int realJoysticks);
-
+void joystickButtonUpdate(SDL_Event *event);
+void joystickAxisUpdate(SDL_Event *event);
+void joystickHatUpdate(SDL_Event *event);
+void piInputUpdate();
+void keyboardUpdate(SDL_Event *event);
+void keyboardInit(Properties *properties);
 #endif // PI_INPUT_H
 

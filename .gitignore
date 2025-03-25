@@ -1,13 +1,2 @@
-objs
-Shortcut Profiles
-Casinfo
-Audio Capture
-Databases
-Keyboard Config
-QuickSave
-SRAM
-Media
-Video Capture
-Roms
-bluemsx.ini
-bluemsx-pi
+# Created by venv; see https://docs.python.org/3/library/venv.html
+*

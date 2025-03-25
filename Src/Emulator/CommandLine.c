@@ -357,7 +357,7 @@ static int emuStartWithArguments(Properties* properties, char* commandLine, char
     // If more than one argument, check arguments,
     // set configuration and then run
     for (i = 0; (argument = extractToken(cmdLine, i)) != NULL; i++) {
-		printf("argument:%s cmdline:%s\n", argument, cmdLine);
+		//printf("argument:%s cmdline:%s\n", argument, cmdLine);
         if (checkArg(argument, "rom1")) {
             argument = extractTokenEx(cmdLine, ++i, gamedir);
             if (argument == NULL || !isRomFileType(argument, rom1zip)) return 0; // Invaid argument
@@ -447,7 +447,7 @@ static int emuStartWithArguments(Properties* properties, char* commandLine, char
         }
         if (checkArg(argument, "machine")) {
             argument = extractToken(cmdLine, ++i);
-			printf("argument:%s\n", argument);
+			// printf("argument:%s\n", argument);
             if (argument == NULL) return 0; // Invaid argument
             strcpy(machineName, argument);
             if (!machineIsValid(machineName, 1)) return 0;

@@ -187,11 +187,39 @@ int lines = -1;
 int interlace = -1;
 
 static void initGL() {
-	glEnable(GL_TEXTURE_2D);
-	glEnableClientState(GL_VERTEX_ARRAY);
-	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-	glEnableClientState(GL_INDEX_ARRAY);
-	glOrtho(0, TEX_WIDTH, TEX_HEIGHT, 0, 1, -1);
+    glEnable(GL_TEXTURE_2D);
+    glEnableClientState(GL_VERTEX_ARRAY);
+    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+    glEnableClientState(GL_INDEX_ARRAY);
+
+    // Calculate viewport for 4:3 aspect ratio with proper centering
+    float target_aspect = 4.0f / 3.0f;
+    float screen_aspect = (float)screenWidth / screenHeight;
+    int viewport_x, viewport_y, viewport_width, viewport_height;
+
+    if (screen_aspect > target_aspect) {
+        // Screen is wider than 4:3
+        viewport_height = screenHeight;
+        viewport_width = (int)(screenHeight * target_aspect);
+        viewport_x = (screenWidth - viewport_width) / 2;
+        viewport_y = 0;
+    } else {
+        // Screen is taller than 4:3
+        viewport_width = screenWidth;
+        viewport_height = (int)(screenWidth / target_aspect);
+        viewport_x = 0;
+        viewport_y = (screenHeight - viewport_height) / 2;
+    }
+
+    // Set viewport with calculated dimensions
+    glViewport(viewport_x, viewport_y, viewport_width, viewport_height);
+    
+    // Clear entire screen to black
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT);
+
+    // Rest of GL initialization
+    glOrtho(0, TEX_WIDTH, TEX_HEIGHT, 0, 1, -1);
 	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
@@ -200,25 +228,33 @@ static void initGL() {
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, TEX_WIDTH, TEX_HEIGHT, 0, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, 0);
 	glVertexPointer(2, GL_FLOAT, 0, VertexCoord);
 	glTexCoordPointer(2, GL_FLOAT, 0, TexCoord);
-
 }
 
 int piInitVideo()
 {
-	printf( "Width/height: %d/%d\n", screenWidth, screenHeight);
-	if (screenHeight < 600 && video)
-		video->scanLinesEnable = 0;
+    SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO);
+    SDL_ShowCursor(SDL_DISABLE);
+    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
-	SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO);
-    	SDL_ShowCursor(SDL_DISABLE);
-	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+	// Get current display resolution
+    SDL_DisplayMode dm;
+    if (SDL_GetCurrentDisplayMode(0, &dm) != 0) {
+        printf("SDL_GetCurrentDisplayMode failed: %s\n", SDL_GetError());
+    } else {
+		screenWidth = dm.w;
+		screenHeight = dm.h;
+	}
+    printf("Display resolution: %dx%d\n", screenWidth, screenHeight);
 
-	fprintf(stderr, "Initializing window surface...\n");
-	// SDL_GL_SetAttribute( SDL_GL_CONTEXT_MAJOR_VERSION, 2 );
-	// SDL_GL_SetAttribute( SDL_GL_CONTEXT_MINOR_VERSION, 1 );
-	// SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-	wnd = SDL_CreateWindow("blueMSX", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-		600, 480, SDL_WINDOW_OPENGL | SDL_WINDOW_BORDERLESS | SDL_WINDOW_INPUT_GRABBED);
+    if (screenHeight < 600 && video)
+        video->scanLinesEnable = 0;
+
+    fprintf(stderr, "Initializing window surface...\n");
+
+    wnd = SDL_CreateWindow("blueMSX", 
+        SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
+        screenWidth, screenHeight, 
+        SDL_WINDOW_OPENGL | SDL_WINDOW_BORDERLESS | SDL_WINDOW_INPUT_GRABBED);
 
 	fprintf(stderr, "Connecting context to surface...\n");
 	// connect the context to the surface
@@ -301,8 +337,8 @@ void piDestroyVideo()
 
 	// Destroy shader resources
 	if (shader.program) {
-		glDeleteProgram(shader.program);
-		glDeleteBuffers(3, buffers);
+		// glDeleteProgram(shader.program);
+		// glDeleteBuffers(3, buffers);
 		glDeleteTextures(1, textures);
 	}
 	

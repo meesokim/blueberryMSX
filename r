@@ -33,7 +33,7 @@ fi
 a=`sed -n ${choice}p < menu`
 echo $choice > ./item
 if [[ -n $2 ]]; then 
-	./bluemsx-pi /machine \"${a}\" /romtype2 msxbus $2 $3 $4 $5 $6 $7 > /dev/null 2>&1
+	sudo chrt -f 99 taskset -c 3 ./bluemsx-pi /machine \"${a}\" /romtype2 msxbus $2 $3 $4 $5 $6 $7 > /dev/null 2>&1
 	# chmod 755 
 	#./xx > /dev/null 2>&1 &
 	#sudo ./bluemsx-pi /machine "$a" /romtype2 msxbus $2 $3 $4 $5 $6 $7

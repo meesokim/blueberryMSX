@@ -1,3 +1,6 @@
+#ifndef ZMXBUS_HH
+#define ZMXBUS_HH
+
 #define MSXREAD "msxread"
 #define MSXWRITE "msxwrite"
 #define MSXRESET "reset"
@@ -18,3 +21,5 @@ typedef unsigned char (*StatusfnPtr)(void);
 #define WR_SLTSL2 0x11
 #define WR_MEM    0x21
 #define WR_IO     0x03
+
+#endif

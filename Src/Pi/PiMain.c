@@ -57,8 +57,12 @@
 #include "JoystickPort.h"
 #include "PiShortcuts.h"
 #include "PiVideo.h"
+#include "PiMouse.h"
 #include "PiUdev.h"
+#include "PiInput.h"
 #include "InputEvent.h"
+
+extern void actionToggleVideoColorMode();
 
 #define EVENT_UPDATE_DISPLAY 2
 
@@ -282,9 +286,9 @@ int main(int argc, char **argv)
 	int resetProperties;
 	char path[512] = "";
 	int i;
-	printf("arg%d:%s\n", 0, argv[0]);
+	//printf("arg%d:%s\n", 0, argv[0]);
 	for (i = 1; i < argc; i++) {
-		printf("arg%d:%s\n", i, argv[i]);
+		// printf("arg%d:%s\n", i, argv[i]);
 
 		if (strchr(argv[i], ' ') != NULL && argv[i][0] != '\"') {
 			strcat(szLine, "\"");

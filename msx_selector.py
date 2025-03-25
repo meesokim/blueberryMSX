@@ -5,12 +5,32 @@ import random  # 추가
 
 class MSXSelector:
     def __init__(self):
-        pygame.init()
+        # Set SDL video driver before pygame init
+        # os.environ['SDL_VIDEODRIVER'] = 'kmsdrm'
+        # os.environ["SDL_VIDEODRIVER"] = "dummy"
+        try:
+            pygame.init()
+        except pygame.error:
+            os.environ['SDL_VIDEODRIVER'] = 'fbdev'
+            try:
+                pygame.init()
+            except pygame.error:
+                os.environ['SDL_VIDEODRIVER'] = 'directfb'
+                pygame.init()
+
         # Get the current display info
         display_info = pygame.display.Info()
         self.screen_width = display_info.current_w
         self.screen_height = display_info.current_h
-        self.screen = pygame.display.set_mode((self.screen_width, self.screen_height))
+        
+        try:
+            self.screen = pygame.display.set_mode((self.screen_width, self.screen_height))
+        except pygame.error:
+            # Fallback to a different resolution if full resolution fails
+            self.screen_width = 1280
+            self.screen_height = 720
+            self.screen = pygame.display.set_mode((self.screen_width, self.screen_height))
+
         pygame.display.set_caption("MSX Machine Selector")
 
         # Get system font
@@ -242,13 +262,13 @@ class MSXSelector:
                                 self.filter_by_category(button['text'])
                                 break
                         else:
-                            # Handle machine selection click
+                            # Handle machine selection and quit pygame before launching blueMSX
                             selected_machine = self.image_names[self.filtered_indices[self.current_index]]
+                            pygame.quit()
                             print(f"Selected: {selected_machine}")
-                            os.system(f'./bluemsx-pi /machine "{selected_machine}" /romtype1 msxbus /romtype2 msxbus')
-                            # return selected_machine
+                            # os.system(f'./bluemsx-pi /machine "{selected_machine}" /romtype1 msxbus /romtype2 msxbus')
+                            return selected_machine
                 elif event.type == pygame.KEYDOWN:
-                    # 숫자키 1-9로 카테고리 선택
                     if event.unicode.isdigit() and event.unicode != '0':
                         key_index = int(event.unicode) - 1
                         if key_index < len(self.buttons):
@@ -258,8 +278,11 @@ class MSXSelector:
                     elif event.key == pygame.K_RIGHT and self.current_index < len(self.filtered_indices) - 1:
                         self.current_index += 1
                     elif event.key == pygame.K_RETURN:
-                        print(f"Selected: {self.image_names[self.filtered_indices[self.current_index]]}")
-                        return self.image_names[self.filtered_indices[self.current_index]]
+                        selected_machine = self.image_names[self.filtered_indices[self.current_index]]
+                        pygame.quit()
+                        print(f"Selected: {selected_machine}")
+                        # os.system(f'./bluemsx-pi /machine "{selected_machine}" /romtype1 msxbus /romtype2 msxbus')
+                        return selected_machine
 
             # Mouse wheel scrolling
             mouse_rel = pygame.mouse.get_rel()
@@ -280,9 +303,11 @@ class MSXSelector:
 import os
 
 if __name__ == "__main__":
-    selector = MSXSelector()
     while True:
-       selected_machine = selector.run()
-       if selected_machine:
+        selector = MSXSelector()
+        selected_machine = selector.run()
+        if selected_machine:
            print(f"Final selection: {selected_machine}")
-       os.system(f'./bluemsx-pi /machine "{selected_machine}" /romtype1 msxbus /romtype2 msxbus')
+           os.system(f'./bluemsx-pi /machine "{selected_machine}" /romtype1 msxbus /romtype2 msxbus')
+        else:
+            os.exit();
