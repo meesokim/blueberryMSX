@@ -42,6 +42,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <SDL.h>
 static pthread_t monthread;
 #endif
 

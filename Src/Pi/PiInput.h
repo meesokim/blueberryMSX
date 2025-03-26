@@ -28,7 +28,7 @@
 
 #ifndef PI_INPUT_H
 #define PI_INPUT_H
-
+#include "Properties.h"
 void piInputResetJoysticks();
 void piInputResetMSXDevices(int realMice, int realJoysticks);
 void joystickButtonUpdate(SDL_Event *event);
