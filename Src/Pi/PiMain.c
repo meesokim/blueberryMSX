@@ -374,7 +374,7 @@ int main(int argc, char **argv)
 		properties->sound.YkIn.fileName);
 
 	emulatorRestartSound();
-
+		
 	videoUpdateAll(video, properties);
 
 	shortcuts = shortcutsCreate();

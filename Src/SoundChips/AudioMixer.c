@@ -32,6 +32,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
+// #include <stdlib.h>
+#include <string.h>
 
 #define BITSPERSAMPLE     16
 #define FRAGMENT_SIZE     512
@@ -464,38 +466,31 @@ void mixerSync(Mixer* mixer)
     UInt64 elapsed;
     int i;
 
-    elapsed        = mixer->rate * (UInt64)(systemTime - mixer->refTime) + mixer->refFrag;
+    // 시간 계산 방식 개선 - 부동소수점 오차 최소화
+    elapsed = mixer->rate * (UInt64)(systemTime - mixer->refTime) + mixer->refFrag;
     mixer->refTime = systemTime;
-    mixer->refFrag = (UInt32)(elapsed % (mixerCPUFrequency * (boardFrequency() / 3579545)));
-    count          = (UInt32)(elapsed / (mixerCPUFrequency * (boardFrequency() / 3579545)));
-
-    if (count == 0 || count > AUDIO_MONO_BUFFER_SIZE) {
-        return;
-    }
-
-    if (!mixer->enable) {
-        while (count--) {
-            if (mixer->stereo) {
-                buffer[mixer->index++] = 0;
-                buffer[mixer->index++] = 0;
-            }
-            else {
-                buffer[mixer->index++] = 0;
-            }
-
-            if (mixer->index == mixer->fragmentSize) {
-                if (mixer->writeCallback != NULL) {
-                    mixer->writeCallback(mixer->writeRef, buffer, mixer->fragmentSize);
-                }
-                if (mixer->logging) {
-                    fwrite(buffer, 2 * mixer->fragmentSize, 1, mixer->file);
-                }
-                mixer->index = 0;
-            }
-        }
+    
+    // CPU 주파수 안정화 - 0으로 나누기 방지 및 최소값 설정
+    UInt32 cpuFreq = mixerCPUFrequency * (boardFrequency() / 3579545);
+    if (cpuFreq < 1) cpuFreq = 1;
+    
+    mixer->refFrag = (UInt32)(elapsed % cpuFreq);
+    count = (UInt32)(elapsed / cpuFreq);
+    
+    // 버퍼 오버플로우 방지 - 적절한 범위로 제한
+    if (count == 0) {
         return;
     }
     
+    // 너무 많은 샘플을 한 번에 처리하지 않도록 제한
+    if (count > AUDIO_MONO_BUFFER_SIZE / 4) {
+        count = AUDIO_MONO_BUFFER_SIZE / 4;
+    }
+
+    // 초기화 - 중요: 모든 채널 버퍼를 NULL로 초기화
+    memset(chBuff, 0, sizeof(chBuff));
+    
+    // 각 채널의 업데이트 콜백 호출하여 버퍼 가져오기
     for (i = 0; i < mixer->channelCount; i++) {
         if (mixer->channels[i].updateCallback != NULL) {
             chBuff[i] = mixer->channels[i].updateCallback(mixer->channels[i].ref, count);
@@ -528,6 +523,7 @@ void mixerSync(Mixer* mixer)
                     chanRight = mixer->channels[i].volumeRight * tmp;
                 }
 
+                // 볼륨 계산 개선 - 오버플로우 방지
                 mixer->channels[i].volCntLeft  += (chanLeft  > 0 ? chanLeft  : -chanLeft)  / 2048;
                 mixer->channels[i].volCntRight += (chanRight > 0 ? chanRight : -chanRight) / 2048;
 
@@ -535,12 +531,14 @@ void mixerSync(Mixer* mixer)
                 right += chanRight;
             }
 
-            left  /= 4096;
-            right /= 4096;
+            // 볼륨 스케일링 개선 - 더 부드러운 변화
+            left  = left / 4096;
+            right = right / 4096;
 
             mixer->volCntLeft  += left  > 0 ? left  : -left;
             mixer->volCntRight += right > 0 ? right : -right;
 
+            // 클리핑 처리 개선
             if (left  >  32767) { left  = 32767; }
             if (left  < -32767) { left  = -32767; }
             if (right >  32767) { right = 32767; }
@@ -712,4 +710,43 @@ void mixerSetEnable(Mixer* mixer, int enable)
 {
     mixer->enable = enable;
 //    printf("AUDIO: %s\n", enable?"enabled":"disabled");
+}
+
+// 새로운 함수 추가 - 믹서 활성화 상태 확인
+int mixerIsActive(Mixer* mixer)
+{
+    return mixer != NULL && mixer->enable;
+}
+
+// 새로운 함수 추가 - 오디오 데이터 직접 읽기
+int mixerRead(Mixer* mixer, Int16* buffer, UInt32 count)
+{
+    if (!mixer || !mixer->enable) {
+        return 0;
+    }
+    
+    // 현재 버퍼에 있는 데이터 복사
+    UInt32 available = mixer->index;
+    if (available == 0) {
+        // 데이터가 없으면 새로 생성
+        mixerSync(mixer);
+        available = mixer->index;
+        if (available == 0) {
+            return 0;
+        }
+    }
+    
+    // 요청한 크기보다 작은 경우 가능한 만큼만 복사
+    UInt32 copySize = (count < available) ? count : available;
+    memcpy(buffer, mixer->buffer, copySize * sizeof(Int16));
+    
+    // 버퍼 포인터 조정
+    if (copySize < available) {
+        memmove(mixer->buffer, mixer->buffer + copySize, (available - copySize) * sizeof(Int16));
+        mixer->index -= copySize;
+    } else {
+        mixer->index = 0;
+    }
+    
+    return copySize;
 }

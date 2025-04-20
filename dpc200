@@ -1,2 +1,2 @@
 #!/bin/bash
-./bluemsx /machine "MSX - Daewoo DPC-200"  /romtype1 msxbus $@
+./bluemsx /machine "MSX - Daewoo DPC-200"  /romtype1 msxbus 

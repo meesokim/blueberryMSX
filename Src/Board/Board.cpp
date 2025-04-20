@@ -1066,7 +1066,7 @@ void boardSetFrequency(int frequency)
 {
     boardFreq = frequency * (boardFrequency() / 3579545);
     // printf("frequency:%d,boardFrequency:%d,boardFreq:%d\n", frequency, boardFrequency(), boardFreq);
-// 	mixerSetBoardFrequency(frequency);
+ 	mixerSetBoardFrequency(frequency);
 }
 
 int boardGetRefreshRate()
