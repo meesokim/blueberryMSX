@@ -41,6 +41,35 @@ typedef struct SdlSound {
     UInt8* buffer;
 } SdlSound;
 
+
+void printStatus(SDL_AudioDeviceID dev)
+{
+    switch (SDL_GetAudioDeviceStatus(dev))
+    {
+        case SDL_AUDIO_STOPPED: printf("stopped\n"); break;
+        case SDL_AUDIO_PLAYING: printf("playing\n"); break;
+        case SDL_AUDIO_PAUSED: printf("paused\n"); break;
+        default: printf("???"); break;
+    }
+}
+
+/*
+// device starts paused
+SDL_AudioDeviceID dev;
+dev = SDL_OpenAudioDevice(NULL, 0, &desired, &obtained, 0);
+if (dev != 0)
+{
+     printStatus(dev);  // prints "paused"
+     SDL_PauseAudioDevice(dev, 0);
+     printStatus(dev);  // prints "playing"
+     SDL_PauseAudioDevice(dev, 1);
+     printStatus(dev);  // prints "paused"
+     SDL_CloseAudioDevice(dev);
+     printStatus(dev);  // prints "stopped"
+}
+*/ 
+
+SDL_AudioDeviceID dev;
 SdlSound sdlSound;
 int oldLen = 0;
 void soundCallback(void* userdata, Uint8* stream, int length)
@@ -57,7 +86,7 @@ oldLen = length;
     sdlSound.readPtr = (sdlSound.readPtr + length) & sdlSound.bufferMask;
 }
 
-static Int32 soundWrite(SdlSound* dummy, Int16 *buffer, UInt32 count)
+static Int32 soundWrite(void* dummy, Int16 *buffer, UInt32 count)
 {
     UInt32 avail;
 
@@ -118,34 +147,32 @@ void archSoundCreate(Mixer* mixer, UInt32 sampleRate, UInt32 bufferSize, Int16 c
 #ifdef LSB_FIRST
 	desired.format   = AUDIO_S16LSB;
 #else
-    desired.format   = AUDIO_S16MSB;
+        desired.format   = AUDIO_S16MSB;
 #endif
 	desired.callback = soundCallback;
-	desired.userdata = calloc(1, sizeof(sdlSound));
+	desired.userdata = NULL;
     
 	if (SDL_InitSubSystem(SDL_INIT_AUDIO) != 0) {
+		fprintf(stderr,"Failed to run SDL_InitSubSystem\n");
         return;
     }
 
-	// char driver_name[1024];
-	// printf("Audio driver: %s\n", driver_name);
-	int i;
-	for (i = 0; i < SDL_GetNumAudioDrivers(); ++i) {
-		const char* driver_name = SDL_GetAudioDriver(i);
-		if (SDL_AudioInit(driver_name)) {
-			printf("Audio driver failed to initialize: %s\n", driver_name);
-			continue;
-		}
-        printf("Audio driver initialized: %s\n", driver_name);
-#if defined(__MINGW32__)
-        if (!strcmp(driver_name, "directsound"))
-#endif
-            break;
-    }
-	if (SDL_OpenAudio(&desired, &audioSpec) != 0) {
+	/*if (SDL_OpenAudio(&desired, &audioSpec) != 0) {
 		SDL_QuitSubSystem(SDL_INIT_AUDIO);
+		fprintf(stderr,"SDL_OpenAudio failed with %s\n",SDL_GetError());
         return;
-    }
+    }*/
+	//dev = SDL_OpenAudioDevice(NULL, 0, &desired, &audioSpec, SDL_AUDIO_ALLOW_FORMAT_CHANGE);
+	dev = SDL_OpenAudioDevice(SDL_GetAudioDeviceName(0,0), 0, &desired, &audioSpec, SDL_AUDIO_ALLOW_FORMAT_CHANGE);
+	if (dev == 0) {
+    		SDL_Log("Failed to open audio: %s", SDL_GetError());
+	} else {
+    		if (audioSpec.format != desired.format) { /* we let this one thing change. */
+        	SDL_Log("We didn't get Float32 audio format.");
+    	}
+    	SDL_PauseAudioDevice(dev, 0); /* start audio playing. */
+	}
+
 	
 	printf ("freq:%d(%d)\n", desired.freq, audioSpec.freq);
 	printf ("samples:%d(%d)\n", desired.samples, audioSpec.samples);
@@ -153,7 +180,7 @@ void archSoundCreate(Mixer* mixer, UInt32 sampleRate, UInt32 bufferSize, Int16 c
 	printf ("format:%d(%d)\n", desired.format, audioSpec.format);
 	printf ("size:%d(%d)\n", desired.size, audioSpec.size);
 	
-    sdlSound.bufferSize = 2;
+    sdlSound.bufferSize = 5;
     while (sdlSound.bufferSize < 4 * audioSpec.size) sdlSound.bufferSize *= 2;
 	sdlSound.bufferSize = audioSpec.size * 4;
 	printf ("size:%d\n", sdlSound.bufferSize);
@@ -167,6 +194,9 @@ void archSoundCreate(Mixer* mixer, UInt32 sampleRate, UInt32 bufferSize, Int16 c
     mixerSetWriteCallback(mixer, soundWrite, NULL, audioSpec.size / sdlSound.bytesPerSample);
     
 	SDL_PauseAudio(0);
+	fprintf(stderr,"Audio device %lu status: ",dev);
+	printStatus(dev);
+	
 }
 
 void archSoundDestroy(void) 
@@ -180,10 +210,10 @@ void archSoundDestroy(void)
 }
 void archSoundResume(void) 
 {
-	SDL_PauseAudio(0);
+	SDL_PauseAudioDevice(dev,0);
 }
 
 void archSoundSuspend(void) 
 {
-	SDL_PauseAudio(1);
+	SDL_PauseAudioDevice(dev,1);
 }

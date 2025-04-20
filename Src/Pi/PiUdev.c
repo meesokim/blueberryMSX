@@ -25,16 +25,15 @@
 ******************************************************************************
 */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
-#ifdef __MINGW32__
-#else
+#include <pthread.h>
 #include <libudev.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <linux/fd.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
 #include <sys/ioctl.h>
 #include <scsi/scsi.h>
 #include <scsi/sg.h>
@@ -43,13 +42,14 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <SDL.h>
-static pthread_t monthread;
-#endif
+#include "PiInput.h"
 
+extern UInt8 diskChange(int driveId, const char* fileName, const char* fileInZipFile);
+
+static pthread_t monthread;
 static int stopMonitor = 0;
 static struct udev *udev = NULL;
 static struct udev_monitor *mon;
-#include "PiInput.h"
 
 static void udevMon(void *arg);
 
@@ -62,7 +62,6 @@ static int connectedFloppyDisks = 0;
 
 int piInitUdev()
 {
-#ifndef __MINGW32__	
 	if (!(udev = udev_new())) {
 		return 0;
 	}
@@ -72,24 +71,24 @@ int piInitUdev()
 	udev_monitor_filter_add_match_subsystem_devtype(mon, "block", NULL);
 	udev_monitor_enable_receiving(mon);
 
-	if (pthread_create(&monthread, NULL, udevMon, NULL) != 0) {
+	if (pthread_create(&monthread, NULL, (void *)udevMon, NULL) != 0) {
 		udev_unref(udev);
 		return 0;
 	}
 
-#endif
 	fprintf(stderr, "udev initialized\n");
+	
 	return 1;
 }
 
 int piDestroyUdev()
 {
 	stopMonitor = 1;
-#ifndef __MINGW32__		
 	pthread_join(monthread, NULL);
+	
 	fprintf(stderr, "udev shut down\n");
+	
 	udev_unref(udev);
-#endif
 }
 
 void piScanDevices()
@@ -99,7 +98,7 @@ void piScanDevices()
 	connectedFloppyDisks = 0;
 	struct udev_enumerate *uenum;
 	struct udev_list_entry *devices, *devEntry;
-#ifndef __MINGW32__			
+	
 	uenum = udev_enumerate_new(udev);
 	udev_enumerate_add_match_subsystem(uenum, "input");
 	udev_enumerate_add_match_subsystem(uenum, "block");
@@ -121,7 +120,7 @@ void piScanDevices()
 	};
 	connectedMice = 0;
 	udev_enumerate_unref(uenum);
-#endif
+
 	piInputResetMSXDevices(connectedMice, connectedJoysticks);
 }
 
@@ -166,7 +165,6 @@ static const unsigned char FORMAT_UNIT_DATA[] = {
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00
 }; 
 
-#ifndef __MINGW32__
 static int ufi_invoke(int fd, const char *cmd, size_t cmd_size, char *data, size_t data_size, int direction)
 {
     sg_io_hdr_t sg_io_hdr;
@@ -221,7 +219,7 @@ static int ufi_invoke(int fd, const char *cmd, size_t cmd_size, char *data, size
     }
     return UFI_GOOD;
 }
-#endif
+
 #define ufi_invoke_to(fd, cmd, data) \
   ufi_invoke(fd, cmd, sizeof(cmd), data, sizeof(data), SG_DXFER_TO_DEV)
 #define ufi_invoke_from(fd, cmd, data) \
@@ -246,32 +244,26 @@ int ufi_format_unit(int fd, int blocks, int block_size, int track, int head)
     data[10] = (block_size >> 8) & 0xff;
     data[11] = block_size & 0xff;
 
-#ifndef __MINGW32__
     if (ufi_invoke_to(fd, command, data) != 0) {
-		return UFI_ERROR;
+	return UFI_ERROR;
     }
-#endif	
     return UFI_GOOD;
 }  
 
 unsigned char udev_format_unit(char devname[], int blocks, int block_size, int track, int head)
 {
-#ifndef __MINGW32__		
 	int fd =  open(devname, 3 | O_NDELAY);
 	int ret = 0;
 	if (fd)
 		ret = ufi_format_unit(fd, blocks, block_size, track, head);
 	close(fd);
 	return ret;
-#else
-	return 0;
-#endif	
 }
 
 static void udevMon(void *arg)
 {
 	fprintf(stderr, "udev monitor starting\n");
-#ifndef __MINGW32__		
+	
 	int monfd = udev_monitor_get_fd(mon);
 	struct udev_device *dev;
 	fd_set fds;
@@ -333,7 +325,6 @@ static void udevMon(void *arg)
 		}
 		usleep(1000*1000);
 	}
-#endif	
 	fprintf(stderr, "udev monitor exiting\n");
 }
 
