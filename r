@@ -18,29 +18,23 @@ done < msxmachines
 
 echo -n "--default-item \"\$1\" " >> msx
 echo "3>&2 2>&1 1>&3" >> msx 
-if [[ $@ =~ .*/rom1.* ]]; then
-	MSXBUS1=""
-fi
 while true;
 do
 ITEM=`cat ./item`
 choice=$(./msx $ITEM)
+echo choice $choice
 if [ -z $choice ]; then 
+	echo error
 	tput cvvis
-	./r0
 	exit
 fi
+if [ -z $1 ]; then
+    MSXBUS=zmxbus
+else
+    MSXBUS=zmxdrive
+fi
+echo $MSXBUS
 a=`sed -n ${choice}p < menu`
 echo $choice > ./item
-if [[ -n $2 ]]; then 
-	sudo chrt -f 99 taskset -c 3 ./bluemsx-pi /machine \"${a}\" /romtype2 msxbus $2 $3 $4 $5 $6 $7 > /dev/null 2>&1
-	# chmod 755 
-	#./xx > /dev/null 2>&1 &
-	#sudo ./bluemsx-pi /machine "$a" /romtype2 msxbus $2 $3 $4 $5 $6 $7
-else
-	./bluemsx-pi /machine \"${a}\" /romtype1 msxbus /romtype2 msxbus $2 $3 $4 $5 $6 $7 > /dev/null 2>&1
-	#chmod 755 xx
-	#./xx > /dev/null 2>&1 &
-	#sudo ./bluemsx-pi /machine "$a" /romtype1 msxbus /romtype2 msxbus $2 $3
-fi
+./bluemsx /machine \"${a}\" /romtype1 $MSXBUS /romtype2 $MSXBUS $2 $3 $4 $5 $6 $7 
 done

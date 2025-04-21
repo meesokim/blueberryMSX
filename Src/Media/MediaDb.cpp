@@ -260,8 +260,8 @@ RomType mediaDbStringToType(const char* romName)
     if (iequals(name, "opcodeslot"))   return ROM_OPCODESLOT;
     if (iequals(name, "opcodeega"))    return ROM_OPCODEMEGA;
     if (iequals(name, "coleco"))       return ROM_COLECO;
-	if (iequals(name, "msxbus"))	   return ROM_MSXBUS;
-	if (iequals(name, "msxdrive"))	   return ROM_MSXDRIVE;
+	if (iequals(name, "zmxbus"))	   return ROM_MSXBUS;
+	if (iequals(name, "zmxdrive"))	   return ROM_MSXDRIVE;
 
     // SG-1000 roms
     if (iequals(name, "sg1000"))       return ROM_SG1000;

@@ -245,6 +245,8 @@ int piInitVideo()
 		screenHeight = dm.h;
 	}
     printf("Display resolution: %dx%d\n", screenWidth, screenHeight);
+	screenWidth /= 2;
+	screenHeight /= 2;
 
     if (screenHeight < 600 && video)
         video->scanLinesEnable = 0;

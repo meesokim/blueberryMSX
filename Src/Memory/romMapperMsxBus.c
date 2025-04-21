@@ -146,7 +146,7 @@ static void initialize() {
     msxwrite = (WritefnPtr)GetZemmixFunc(hDLL, (char*)MSXWRITE);
     msxinit = (InitfnPtr)GetZemmixFunc(hDLL, (char*)MSXINIT);
     resetz = (ResetfnPtr)GetZemmixFunc(hDLL, (char*)MSXRESET);   
-    msxstatus = (StatusfnPtr)GetZemmixFunc(hDLL, (char*)MSXSTATUS);         
+    msxstatus = (StatusfnPtr)GetZemmixFunc(hDLL, (char*)MSXSTATUS);
     msxinit(0);
     resetz(0);
     sleep(1);

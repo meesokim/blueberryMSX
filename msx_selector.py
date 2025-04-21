@@ -303,11 +303,14 @@ class MSXSelector:
 import os, sys
 
 if __name__ == "__main__":
+    ext = 'msxbus'
+    if len(sys.argv) > 1:
+        ext = 'msxdrive'
     while True:
         selector = MSXSelector()
         selected_machine = selector.run()
         if selected_machine:
            print(f"Final selection: {selected_machine}")
-           os.system(f'./bluemsx-pi /machine "{selected_machine}" /romtype1 msxbus /romtype2 msxbus')
+           os.system(f'./bluemsx-pi /machine "{selected_machine}" /romtype1 {ext} /romtype2 {ext}')
         else:
             sys.exit();

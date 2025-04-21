@@ -146,7 +146,7 @@ static void initialize() {
     msxwrite = (WritefnPtr)GetZemmixFunc(hDLL, (char*)MSXWRITE);
     msxinit = (InitfnPtr)GetZemmixFunc(hDLL, (char*)MSXINIT);
     resetz = (ResetfnPtr)GetZemmixFunc(hDLL, (char*)MSXRESET);            
-    msxinit("./sdcard");
+    msxinit(getenv("SDCARD"));
     resetz(5);		
 }
 

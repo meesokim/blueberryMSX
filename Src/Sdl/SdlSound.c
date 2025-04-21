@@ -456,7 +456,7 @@ void archSoundCreate(Mixer* mixer, UInt32 sampleRate, UInt32 bufferSize, Int16 c
     printf("Audio device status: ");
     printStatus(sdlSound.deviceId);
     
-    startWavCapture(true);
+    // startWavCapture(true);
 }
 
 void archSoundDestroy(void) 
