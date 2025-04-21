@@ -160,7 +160,7 @@ static const char* vertexShaderSrc =
     "void main() {\n"
     "   v_texcoord = a_texcoord;\n"
 	"   if (scanline == 1) \n"
-	"     	gl_Position = vec4((a_texcoord.x) * 4.7 / width - 1, a_texcoord.y * -4.0 + 1.0, 0.0, 1.0);\n"
+	"	 	gl_Position = vec4((a_texcoord.x) * 4.7 / width - 1, a_texcoord.y * -4.0 + 1.0, 0.0, 1.0);\n"
 	"   else \n"
 	"   	gl_Position = a_position;\n"
     "}\n";
@@ -264,8 +264,6 @@ static void initGL() {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, TEX_WIDTH, TEX_HEIGHT, 0, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, 0);
-	glVertexPointer(2, GL_FLOAT, 0, VertexCoord);
-	glTexCoordPointer(2, GL_FLOAT, 0, TexCoord);
 
     // Initialize shader program for scanline effect
     memset(&shader, 0, sizeof(ShaderInfo));
@@ -424,13 +422,18 @@ static void draw() {
         height = frameBuffer->lines;
         interlace = frameBuffer->interlace;
         msxScreenPitch = frameBuffer->maxWidth * (width+1);
-        TexCoord[6] = TexCoord[2] = VertexCoord[2] = VertexCoord[6] = FB_MAX_LINE_WIDTH * FB_MAX_LINE_WIDTH / msxScreenPitch;
-        TexCoord[5] = TexCoord[7] = VertexCoord[5] = VertexCoord[7] = FB_MAX_LINES * FB_MAX_LINES / height;
+        VertexCoord[2] = VertexCoord[6] = FB_MAX_LINE_WIDTH * FB_MAX_LINE_WIDTH / msxScreenPitch;
+        VertexCoord[5] = VertexCoord[7] = FB_MAX_LINES * FB_MAX_LINES / height;
+		if (video->scanLinesEnable && shader.program) {
+			TexCoord[6] = TexCoord[2] = VertexCoord[2];
+			TexCoord[5] = TexCoord[7] = VertexCoord[7];
+		} else {
+			TexCoord[0] = 0.0f; TexCoord[1] = 0.0f; 
+			TexCoord[2] = 1.0f; TexCoord[3] = 0.0f;  
+			TexCoord[4] = 0.0f; TexCoord[5] = 1.f; 
+			TexCoord[6] = 1.0f; TexCoord[7] = 1.f;
+		}
 		// shader.width = 1.f / (width+1);
-		// TexCoord[0] = 0.0f; TexCoord[1] = 0.0f; 
-		// TexCoord[2] = 1.0f; TexCoord[3] = 0.0f;  
-		// TexCoord[4] = 0.0f; TexCoord[5] = 1.f; 
-        // TexCoord[6] = 1.0f; TexCoord[7] = 1.f;
 		printf("width:%d, height=%d\n", msxScreenPitch, height);
     }
 
@@ -456,7 +459,9 @@ static void draw() {
         }
     } else {
         // Use fixed function pipeline
-        glUseProgram(0);
+		glVertexPointer(2, GL_FLOAT, 0, VertexCoord);
+		glTexCoordPointer(2, GL_FLOAT, 0, TexCoord);
+		glUseProgram(0);	
     }
     
     // Draw the quad
