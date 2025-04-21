@@ -52,7 +52,8 @@ typedef	struct ShaderInfo {
 	GLint a_texcoord;
 	GLint u_vp_matrix;
 	GLint u_texture;
-	GLboolean scanline;
+	GLint scanline;  // Changed from GLboolean to GLint to match shader
+	GLint width;  // Changed from GLboolean to GLint to match shader
 } ShaderInfo;
 
 #define	TEX_WIDTH  FB_MAX_LINE_WIDTH
@@ -92,10 +93,11 @@ unsigned char *msxScreen = NULL;
 int msxScreenPitch;
 int height;
 
+#if 0
 static const char* vertexShaderSrc =
 	"#version 120\n"
 	"uniform mat4 u_vp_matrix;\n"
-	"uniform bool scanline;\n"
+	"uniform int scanline;\n"  // Changed from bool to int to match fragment shader
 	"attribute vec4 a_position;\n"
 	"attribute vec2 a_texcoord;\n"
 	"attribute vec4 in_Colour;\n"
@@ -105,7 +107,7 @@ static const char* vertexShaderSrc =
 	"void main() {\n"
 	"	v_texcoord = a_texcoord;\n"
 	"	v_vColour = in_Colour;\n"
-	"   if (scanline)\n"
+	"   if (scanline == 1)\n"  // Changed from boolean to int comparison
 	"	{\n"
 	// "   	gl_Position = a_position*u_vp_matrix;\n"
 	"   	gl_Position = a_position.x*u_vp_matrix[0] + a_position.y*u_vp_matrix[1] + a_position.z*u_vp_matrix[2] + a_position.w*u_vp_matrix[3];\n"
@@ -115,37 +117,73 @@ static const char* vertexShaderSrc =
 	"	}\n"
 	"}\n";
 	
+// 간단한 스캔라인 셰이더로 수정
 static const char* fragmentShaderSrc =
-	"#version 120\n"
-	"varying  vec2 v_texcoord;\n"
-	"uniform bool scanline;\n"
-	"uniform sampler2D u_texture;\n"
-	"varying vec4 TEX0;\n"
-	"uniform vec2 TextureSize;\n"
-	"void main() {\n"
-	"   if (!scanline)\n"
-	"	{\n"
-	"  		vec3 col;\n"
-	"  		float x = TEX0.x * TextureSize.x;\n"
-	"  		float y = floor(gl_FragCoord.y / 3.0) + 0.5;\n"
-	"  		float ymod = mod(gl_FragCoord.y, 3.0);\n"
-	"  		vec2 f0 = vec2(x, y);\n"
-	"  		vec2 uv0 = f0 / TextureSize.xy;\n"
- 	"  		vec3 t0 = texture2D(u_texture, v_texcoord).xyz;\n"
-	"  		if (ymod > 2.0) {\n"
-	"    		vec2 f1 = vec2(x, y + 1.0);\n"
-	"    		vec2 uv1 = f1 / TextureSize.xy;\n"
-	"    		vec3 t1 = texture2D(u_texture, uv1).xyz * 0.1;\n"
-	"    		col = (t0 + t1) / 1.6;\n"
-	"  		} else {\n"
-	"    		col = t0;\n"
-	"  		} \n"
-	"  		gl_FragColor = vec4(col, 1.0);\n"
-	"	} else {"
-	"		gl_FragColor = texture2D(u_texture, v_texcoord);\n"
-	"	}\n"
-	"}\n";
+    "#version 120\n"
+    "varying vec2 v_texcoord;\n"
+    "uniform sampler2D u_texture;\n"
+    "uniform int scanline;\n"
+    "void main() {\n"
+    "   vec3 color = texture2D(u_texture, v_texcoord).rgb;\n"
+    "   if (scanline == 1) {\n"
+    "       float scanlineEffect = 0.85 + 0.15 * mod(gl_FragCoord.y, 2.0);\n"
+    "       color *= scanlineEffect;\n"
+    "   }\n"
+    "   gl_FragColor = vec4(color, 1.0);\n"
+    "}\n";
+#else
+// static const char* fragmentShaderSrc =
+//     "#version 120\n"
+//     "varying vec2 v_texcoord;\n"
+//     "uniform sampler2D u_texture;\n"
+//     "uniform int scanline;\n"
+//     "void main() {\n"
+//     "   vec4 color = texture2D(u_texture, v_texcoord);\n"
+//     "   if (scanline == 1) {\n"
+//     "       float scanlineEffect = 1.0;\n"
+//     "       if (mod(gl_FragCoord.y, 2.0) < 1.0) {\n"
+//     "           scanlineEffect = 0.8;\n"
+//     "       }\n"
+//     "       color.rgb *= scanlineEffect;\n"
+//     "   }\n"
+//     "   gl_FragColor = color;\n"
+//     "}\n";
 
+// 단순화된 버텍스 셰이더 - 문법 오류 수정 (-0.5.0 → -0.5)
+static const char* vertexShaderSrc =
+    "#version 120\n"
+    "attribute vec4 a_position;\n"
+    "attribute vec2 a_texcoord;\n"
+    "uniform int scanline;\n"
+	"uniform int width;\n"
+    "varying vec2 v_texcoord;\n"
+    "void main() {\n"
+    "   v_texcoord = a_texcoord;\n"
+	"   if (scanline == 1) \n"
+	"     	gl_Position = vec4((a_texcoord.x) * 4.7 / width - 1, a_texcoord.y * -4.0 + 1.0, 0.0, 1.0);\n"
+	"   else \n"
+	"   	gl_Position = a_position;\n"
+    "}\n";
+
+// 스캔라인 효과 개선 - 더 뚜렷한 효과를 위해 수정
+static const char* fragmentShaderSrc =
+    "#version 120\n"
+    "varying vec2 v_texcoord;\n"
+    "uniform sampler2D u_texture;\n"
+    "uniform int scanline;\n"
+    "void main() {\n"
+    "   vec4 color = texture2D(u_texture, v_texcoord);\n"
+    "   if (scanline == 1) {\n"
+    "       float scanlineEffect = 1.0;\n"
+    "       float line = mod(gl_FragCoord.y, 2.0);\n"
+    "       if (line < 1.0) {\n"
+    "           scanlineEffect = 0.5; // 더 어두운 효과로 조정\n"
+    "       }\n"
+    "       color.rgb *= scanlineEffect;\n"
+    "   }\n"
+    "   gl_FragColor = color;\n"
+    "}\n";
+#endif
 static const GLfloat uvs[] = {
 	minU, minV,
 	maxU, minV,
@@ -228,6 +266,35 @@ static void initGL() {
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, TEX_WIDTH, TEX_HEIGHT, 0, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, 0);
 	glVertexPointer(2, GL_FLOAT, 0, VertexCoord);
 	glTexCoordPointer(2, GL_FLOAT, 0, TexCoord);
+
+    // Initialize shader program for scanline effect
+    memset(&shader, 0, sizeof(ShaderInfo));
+    shader.program = createProgram(vertexShaderSrc, fragmentShaderSrc);
+    if (shader.program) {
+        shader.a_position = glGetAttribLocation(shader.program, "a_position");
+        shader.a_texcoord = glGetAttribLocation(shader.program, "a_texcoord");
+        shader.u_vp_matrix = glGetUniformLocation(shader.program, "u_vp_matrix");
+        shader.u_texture = glGetUniformLocation(shader.program, "u_texture");
+        shader.scanline = glGetUniformLocation(shader.program, "scanline");
+        shader.width = glGetUniformLocation(shader.program, "width");
+        // Use the shader program
+        glUseProgram(shader.program);
+        glUniform1i(shader.u_texture, 0);  // Texture unit 0
+        
+        // Set scanline to 0 (off) by default to avoid crashes
+        glUniform1i(shader.scanline, 0);
+        
+        // Print debug info
+        printf("Shader program created successfully. scanline uniform location: %d\n", shader.scanline);
+    } else {
+        printf("Failed to create shader program\n");
+    }
+    
+    // Fall back to fixed function pipeline if shader fails
+    if (!shader.program) {
+        glDisable(GL_VERTEX_PROGRAM_ARB);
+        glDisable(GL_FRAGMENT_PROGRAM_ARB);
+    }
 }
 
 int piInitVideo()
@@ -245,12 +312,11 @@ int piInitVideo()
 		screenHeight = dm.h;
 	}
     printf("Display resolution: %dx%d\n", screenWidth, screenHeight);
-	screenWidth /= 2;
-	screenHeight /= 2;
+	// screenWidth /= 2;
+	// screenHeight /= 2;
 
     if (screenHeight < 600 && video)
         video->scanLinesEnable = 0;
-
     fprintf(stderr, "Initializing window surface...\n");
 
     wnd = SDL_CreateWindow("blueMSX", 
@@ -348,36 +414,59 @@ void piDestroyVideo()
 }
 
 static void draw() {
+    FrameBuffer* frameBuffer = frameBufferFlipViewFrame(properties->emulation.syncMethod == P_EMU_SYNCTOVBLANKASYNC);
+    if (frameBuffer == NULL) {
+        frameBuffer = frameBufferGetWhiteNoiseFrame();
+    }
+    if (frameBufferGetDoubleWidth(frameBuffer, 0) != width || height != frameBuffer->lines || (interlace > 0 && frameBuffer->interlace == 0) || (!interlace && frameBuffer->interlace))
+    {
+        width = frameBufferGetDoubleWidth(frameBuffer, 0);
+        height = frameBuffer->lines;
+        interlace = frameBuffer->interlace;
+        msxScreenPitch = frameBuffer->maxWidth * (width+1);
+        TexCoord[6] = TexCoord[2] = VertexCoord[2] = VertexCoord[6] = FB_MAX_LINE_WIDTH * FB_MAX_LINE_WIDTH / msxScreenPitch;
+        TexCoord[5] = TexCoord[7] = VertexCoord[5] = VertexCoord[7] = FB_MAX_LINES * FB_MAX_LINES / height;
+		// shader.width = 1.f / (width+1);
+		// TexCoord[0] = 0.0f; TexCoord[1] = 0.0f; 
+		// TexCoord[2] = 1.0f; TexCoord[3] = 0.0f;  
+		// TexCoord[4] = 0.0f; TexCoord[5] = 1.f; 
+        // TexCoord[6] = 1.0f; TexCoord[7] = 1.f;
+		printf("width:%d, height=%d\n", msxScreenPitch, height);
+    }
 
-	FrameBuffer* frameBuffer = frameBufferFlipViewFrame(properties->emulation.syncMethod == P_EMU_SYNCTOVBLANKASYNC);
-	if (frameBuffer == NULL) {
-		frameBuffer = frameBufferGetWhiteNoiseFrame();
-	}
-	if (frameBufferGetDoubleWidth(frameBuffer, 0) != width || height != frameBuffer->lines || (interlace > 0 && frameBuffer->interlace == 0) || (!interlace && frameBuffer->interlace))
-	{
-		width = frameBufferGetDoubleWidth(frameBuffer, 0);
-		height = frameBuffer->lines;
-		interlace = frameBuffer->interlace;
-		msxScreenPitch = frameBuffer->maxWidth * (width+1);//(256+16)*(width+1);
-		VertexCoord[2] = VertexCoord[6] = FB_MAX_LINE_WIDTH * FB_MAX_LINE_WIDTH / msxScreenPitch;
-		VertexCoord[5] = VertexCoord[7] = FB_MAX_LINES * FB_MAX_LINES / height;
-		// printf("width: %d, w:%d, h:%d, interlace: %d\n", width, msxScreenPitch, height, frameBuffer->interlace);
-		// setOrtho(projection, -1, 1,    1,   -1, -0.5f, +0.5f,1,1);		
-		// glUniformMatrix4fv(shader.u_vp_matrix, 1, GL_FALSE, projection);		
-	}	
-	// videoRender(video, 	frameBuffer, BIT_DEPTH, 1, msxScreen, 0, msxScreenPitch*2, -1);
-	// glUniform1i(shader.u_texture, textures[0]);
-	// glBindBuffer(GL_ARRAY_BUFFER, buffers[0]);
-	// glVertexAttribPointer(shader.a_position, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), NULL);
-	// glEnableVertexAttribArray(shader.a_position);
-	// glBindBuffer(GL_ARRAY_BUFFER, buffers[1]);
-	// glVertexAttribPointer(shader.a_texcoord, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), NULL);
-	// glEnableVertexAttribArray(shader.a_texcoord);	
-	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, FB_MAX_LINE_WIDTH, height, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, frameBuffer->fb);
-	// glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, msxScreenPitch, height, GL_COLOR_INDEX, GL_UNSIGNED_BYTE, msxScreen);
-	// glClear(GL_COLOR_BUFFER_BIT);
-	// drawQuad(&shader);
-	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    // Update texture with frame data
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, FB_MAX_LINE_WIDTH, height, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, frameBuffer->fb);
+    
+    // Check if scanlines are enabled and shader is available
+    if (video && video->scanLinesEnable && shader.program) {
+        // Use shader program for scanlines
+        glUseProgram(shader.program);
+        glUniform1i(shader.u_texture, 0);
+        glUniform1i(shader.scanline, 1);
+        glUniform1i(shader.width, width+1);
+        // 버텍스 및 텍스처 좌표 설정
+        if (shader.a_position != -1) {
+            glVertexAttribPointer(shader.a_position, 2, GL_FLOAT, GL_FALSE, 0, VertexCoord);
+            glEnableVertexAttribArray(shader.a_position);
+        }
+        
+        if (shader.a_texcoord != -1) {
+            glVertexAttribPointer(shader.a_texcoord, 2, GL_FLOAT, GL_FALSE, 0, TexCoord);
+            glEnableVertexAttribArray(shader.a_texcoord);
+        }
+    } else {
+        // Use fixed function pipeline
+        glUseProgram(0);
+    }
+    
+    // Draw the quad
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    
+    // OpenGL 오류 확인
+    GLenum error = glGetError();
+    if (error != GL_NO_ERROR) {
+        printf("OpenGL error: %d\n", error);
+    }
 }
 
 
@@ -385,6 +474,89 @@ void piUpdateEmuDisplay()
 {
 	draw();
 	SDL_GL_SwapWindow(wnd);
+}
+
+static GLuint createProgram(const char *vertexShaderSrc, const char *fragmentShaderSrc)
+{
+    GLuint vertexShader = createShader(GL_VERTEX_SHADER, vertexShaderSrc);
+    if (!vertexShader) {
+        fprintf(stderr, "createShader(GL_VERTEX_SHADER) failed\n");
+        return 0;
+    }
+
+    GLuint fragmentShader = createShader(GL_FRAGMENT_SHADER, fragmentShaderSrc);
+    if (!fragmentShader) {
+        fprintf(stderr, "createShader(GL_FRAGMENT_SHADER) failed\n");
+        glDeleteShader(vertexShader);
+        return 0;
+    }
+
+    GLuint programObject = glCreateProgram();
+    if (!programObject) {
+        fprintf(stderr, "glCreateProgram() failed: %d\n", glGetError());
+        return 0;
+    }
+
+    glAttachShader(programObject, vertexShader);
+    glAttachShader(programObject, fragmentShader);
+
+    // Link the program
+    glLinkProgram(programObject);
+
+    // Check the link status
+    GLint linked = 0;
+    glGetProgramiv(programObject, GL_LINK_STATUS, &linked);
+    if (!linked) {
+        GLint infoLen = 0;
+        glGetProgramiv(programObject, GL_INFO_LOG_LENGTH, &infoLen);
+        if (infoLen > 1) {
+            char* infoLog = (char *)malloc(infoLen);
+            glGetProgramInfoLog(programObject, infoLen, NULL, infoLog);
+            fprintf(stderr, "Error linking program: %s\n", infoLog);
+            free(infoLog);
+        }
+
+        glDeleteProgram(programObject);
+        return 0;
+    }
+
+    // Delete these here because they are attached to the program object.
+    glDeleteShader(vertexShader);
+    glDeleteShader(fragmentShader);
+
+    return programObject;
+}
+
+static GLuint createShader(GLenum type, const char *shaderSrc)
+{
+    GLuint shader = glCreateShader(type);
+    if (!shader) {
+        fprintf(stderr, "glCreateShader() failed: %d\n", glGetError());
+        return 0;
+    }
+
+    // Load and compile the shader source
+    glShaderSource(shader, 1, &shaderSrc, NULL);
+    glCompileShader(shader);
+
+    // Check the compile status
+    GLint compiled = 0;
+    glGetShaderiv(shader, GL_COMPILE_STATUS, &compiled);
+    if (!compiled) {
+        GLint infoLen = 0;
+        glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &infoLen);
+        if (infoLen > 1) {
+            char* infoLog = (char *)malloc(sizeof(char) * infoLen);
+            glGetShaderInfoLog(shader, infoLen, NULL, infoLog);
+            fprintf(stderr, "Error compiling shader:\n%s\n", infoLog);
+            free(infoLog);
+        }
+
+        glDeleteShader(shader);
+        return 0;
+    }
+
+    return shader;
 }
 #if 0
 void piUpdateEmuDisplay2()
@@ -559,3 +731,5 @@ static void drawQuad(const ShaderInfo *sh)
 	glDrawElements(GL_TRIANGLES, kIndexCount, GL_UNSIGNED_SHORT, 0);
 }
 #endif
+
+

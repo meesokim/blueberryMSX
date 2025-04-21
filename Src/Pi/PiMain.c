@@ -266,6 +266,8 @@ int main(int argc, char **argv)
 	gpioInit();
 #endif
 
+	video = videoCreate();
+
 	if (!piInitVideo()) {
 		fprintf(stderr, "piInitVideo() failed");
 		return 1;
@@ -321,7 +323,6 @@ int main(int argc, char **argv)
 		return 0;
 	}
 
-	video = videoCreate();
 	videoSetPalMode(video, VIDEO_PAL_FAST);
 	videoSetColors(video, properties->video.saturation,
 		properties->video.brightness,
