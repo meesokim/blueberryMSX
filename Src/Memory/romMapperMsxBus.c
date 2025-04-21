@@ -141,7 +141,8 @@ static void initialize() {
     {
         printf("DLL open error!! %s\n", ZMX_DRIVER);
         exit(1);
-    }	
+    }
+    printf("Zemmix initialized\n");	
     msxread = (ReadfnPtr)GetZemmixFunc(hDLL, (char*)MSXREAD);
     msxwrite = (WritefnPtr)GetZemmixFunc(hDLL, (char*)MSXWRITE);
     msxinit = (InitfnPtr)GetZemmixFunc(hDLL, (char*)MSXINIT);
@@ -155,7 +156,7 @@ static void initialize() {
 
 int romMapperMsxBusCreate(int cartSlot, int slot, int sslot) 
 {
-    DeviceCallbacks callbacks = { destroy, reset, saveState, loadState };
+    DeviceCallbacks callbacks = { (void *)destroy, (void *)reset, (void *)saveState, (void *)loadState };
     RomMapperMsxBus* rm;
     int i;
 	

@@ -24,10 +24,10 @@ BCM_LIBDIR= /usr/$(SILENT)/lib
 AARCH64=/
 
 COMMON_FLAGS = -DUSE_EGL -DIS_RPI -DLSB_FIRST -DNO_ASM -DNO_HIRES_TIMERS -DNO_FILE_HISTORY -DNO_EMBEDDED_SAMPLES -DUSE_SDL -DRASPI 
-CFLAGS   = -g -w -O3 -ffast-math -fstrict-aliasing -fomit-frame-pointer $(COMMON_FLAGS) 
+CFLAGS   = -g -w -O3 -ffast-math -fstrict-aliasing -fomit-frame-pointer -Wno-implicit-function-declaration -Wno-incompatible-pointer-types $(COMMON_FLAGS) 
 CPPFLAGS = -g $(COMMON_FLAGS)
 LDFLAGS  =  
-LIBS     =  -lSDL2 -lz -lpthread -ludev -lGL -lGLESv2 -lbcm2835
+LIBS     =  -lSDL2 -lz -lpthread -ludev -lGL -lGLESv3 -lbcm2835
 LIBDIR   =  -L$(X11_LIBDIR) -L$(BCM_LIBDIR) 
 # Uncomment the following line to enable GPIO (requires wiring-pi)
 #CFLAGS   += -DRASPI_GPIO
@@ -490,7 +490,7 @@ $(OUTPUT_DIR):
 
 $(OUTPUT_DIR)/%.o: %.c  $(HEADER_FILES)
 	$(ECHO) Compiling $<...
-	@$(CC) $(CFLAGS) $(CPPFLAGS) $(INCLUDE) -o $@ -c $<
+	$(CC) $(CFLAGS) $(CPPFLAGS) $(INCLUDE) -o $@ -c $<
 
 $(OUTPUT_DIR)/%.o: %.cc  $(HEADER_FILES)
 	$(ECHO) Compiling $<...

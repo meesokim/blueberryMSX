@@ -36,5 +36,5 @@ fi
 echo $MSXBUS
 a=`sed -n ${choice}p < menu`
 echo $choice > ./item
-./bluemsx /machine \"${a}\" /romtype1 $MSXBUS /romtype2 $MSXBUS $2 $3 $4 $5 $6 $7 
+./bluemsx-pi /machine \"${a}\" /romtype1 $MSXBUS /romtype2 $MSXBUS $2 $3 $4 $5 $6 $7 
 done

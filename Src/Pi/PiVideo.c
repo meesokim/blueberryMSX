@@ -40,12 +40,15 @@
 #include <bcm_host.h>
 #include <interface/vchiq_arm/vchiq_if.h>
 #include <EGL/egl.h>
-#include <GLES2/gl2.h>
+#include <GLES3/gl31.h> // OpenGL ES 3.1 헤더로 변경
 #include <SDL_opengles2.h>
-#endif
+#else
 #include <SDL.h>
 #include <SDL_opengl.h>
-//#include <GLES/egl.h>
+#include <GL/glext.h>
+#endif
+
+#include <GL/glext.h>
 typedef	struct ShaderInfo {
 	GLuint program;
 	GLint a_position;
@@ -225,6 +228,44 @@ int lines = -1;
 int interlace = -1;
 
 static void initGL() {
+#if 0
+    // OpenGL ES 3.1 초기화 코드
+    glGenTextures(1, textures);
+    glBindTexture(GL_TEXTURE_2D, textures[0]);
+    
+    // Calculate viewport for 4:3 aspect ratio with proper centering
+    float target_aspect = 4.0f / 3.0f;
+    float screen_aspect = (float)screenWidth / screenHeight;
+    int viewport_x, viewport_y, viewport_width, viewport_height;
+
+    if (screen_aspect > target_aspect) {
+        // Screen is wider than 4:3
+        viewport_height = screenHeight;
+        viewport_width = (int)(screenHeight * target_aspect);
+        viewport_x = (screenWidth - viewport_width) / 2;
+        viewport_y = 0;
+    } else {
+        // Screen is taller than 4:3
+        viewport_width = screenWidth;
+        viewport_height = (int)(screenWidth / target_aspect);
+        viewport_x = 0;
+        viewport_y = (screenHeight - viewport_height) / 2;
+    }
+
+    // Set viewport with calculated dimensions
+    glViewport(viewport_x, viewport_y, viewport_width, viewport_height);
+    
+    // Clear entire screen to black
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT);
+
+    // 텍스처 설정
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, TEX_WIDTH, TEX_HEIGHT, 0, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, 0);
+#else
     glEnable(GL_TEXTURE_2D);
     glEnableClientState(GL_VERTEX_ARRAY);
     glEnableClientState(GL_TEXTURE_COORD_ARRAY);
@@ -258,12 +299,13 @@ static void initGL() {
 
     // Rest of GL initialization
     glOrtho(0, TEX_WIDTH, TEX_HEIGHT, 0, 1, -1);
-	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, TEX_WIDTH, TEX_HEIGHT, 0, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, 0);
+    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, TEX_WIDTH, TEX_HEIGHT, 0, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, 0);
+#endif
 
     // Initialize shader program for scanline effect
     memset(&shader, 0, sizeof(ShaderInfo));
@@ -290,8 +332,10 @@ static void initGL() {
     
     // Fall back to fixed function pipeline if shader fails
     if (!shader.program) {
+#if !defined RASPPI
         glDisable(GL_VERTEX_PROGRAM_ARB);
         glDisable(GL_FRAGMENT_PROGRAM_ARB);
+#endif
     }
 }
 
@@ -424,17 +468,16 @@ static void draw() {
         msxScreenPitch = frameBuffer->maxWidth * (width+1);
         VertexCoord[2] = VertexCoord[6] = FB_MAX_LINE_WIDTH * FB_MAX_LINE_WIDTH / msxScreenPitch;
         VertexCoord[5] = VertexCoord[7] = FB_MAX_LINES * FB_MAX_LINES / height;
-		if (video->scanLinesEnable && shader.program) {
-			TexCoord[6] = TexCoord[2] = VertexCoord[2];
-			TexCoord[5] = TexCoord[7] = VertexCoord[7];
-		} else {
-			TexCoord[0] = 0.0f; TexCoord[1] = 0.0f; 
-			TexCoord[2] = 1.0f; TexCoord[3] = 0.0f;  
-			TexCoord[4] = 0.0f; TexCoord[5] = 1.f; 
-			TexCoord[6] = 1.0f; TexCoord[7] = 1.f;
-		}
-		// shader.width = 1.f / (width+1);
-		printf("width:%d, height=%d\n", msxScreenPitch, height);
+        if (video->scanLinesEnable && shader.program) {
+            TexCoord[6] = TexCoord[2] = VertexCoord[2];
+            TexCoord[5] = TexCoord[7] = VertexCoord[7];
+        } else {
+            TexCoord[0] = 0.0f; TexCoord[1] = 0.0f; 
+            TexCoord[2] = 1.0f; TexCoord[3] = 0.0f;  
+            TexCoord[4] = 0.0f; TexCoord[5] = 1.f; 
+            TexCoord[6] = 1.0f; TexCoord[7] = 1.f;
+        }
+        printf("width:%d, height=%d\n", msxScreenPitch, height);
     }
 
     // Update texture with frame data
@@ -447,6 +490,7 @@ static void draw() {
         glUniform1i(shader.u_texture, 0);
         glUniform1i(shader.scanline, 1);
         glUniform1i(shader.width, width+1);
+        
         // 버텍스 및 텍스처 좌표 설정
         if (shader.a_position != -1) {
             glVertexAttribPointer(shader.a_position, 2, GL_FLOAT, GL_FALSE, 0, VertexCoord);
@@ -459,9 +503,9 @@ static void draw() {
         }
     } else {
         // Use fixed function pipeline
-		glVertexPointer(2, GL_FLOAT, 0, VertexCoord);
-		glTexCoordPointer(2, GL_FLOAT, 0, TexCoord);
-		glUseProgram(0);	
+        glVertexPointer(2, GL_FLOAT, 0, VertexCoord);
+        glTexCoordPointer(2, GL_FLOAT, 0, TexCoord);
+        glUseProgram(0);    
     }
     
     // Draw the quad
