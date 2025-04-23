@@ -178,9 +178,9 @@ static const char* fragmentShaderSrc =
     "   vec4 color = texture2D(u_texture, v_texcoord);\n"
     "   if (scanline == 1) {\n"
     "       float scanlineEffect = 1.0;\n"
-    "       float line = mod(gl_FragCoord.y, 2.0);\n"
+    "       float line = mod(gl_FragCoord.y, 1.5);\n"
     "       if (line < 1.0) {\n"
-    "           scanlineEffect = 0.5; // 더 어두운 효과로 조정\n"
+    "           scanlineEffect = 0.8; // 더 어두운 효과로 조정\n"
     "       }\n"
     "       color.rgb *= scanlineEffect;\n"
     "   }\n"
@@ -228,44 +228,6 @@ int lines = -1;
 int interlace = -1;
 
 static void initGL() {
-#if 0
-    // OpenGL ES 3.1 초기화 코드
-    glGenTextures(1, textures);
-    glBindTexture(GL_TEXTURE_2D, textures[0]);
-    
-    // Calculate viewport for 4:3 aspect ratio with proper centering
-    float target_aspect = 4.0f / 3.0f;
-    float screen_aspect = (float)screenWidth / screenHeight;
-    int viewport_x, viewport_y, viewport_width, viewport_height;
-
-    if (screen_aspect > target_aspect) {
-        // Screen is wider than 4:3
-        viewport_height = screenHeight;
-        viewport_width = (int)(screenHeight * target_aspect);
-        viewport_x = (screenWidth - viewport_width) / 2;
-        viewport_y = 0;
-    } else {
-        // Screen is taller than 4:3
-        viewport_width = screenWidth;
-        viewport_height = (int)(screenWidth / target_aspect);
-        viewport_x = 0;
-        viewport_y = (screenHeight - viewport_height) / 2;
-    }
-
-    // Set viewport with calculated dimensions
-    glViewport(viewport_x, viewport_y, viewport_width, viewport_height);
-    
-    // Clear entire screen to black
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT);
-
-    // 텍스처 설정
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, TEX_WIDTH, TEX_HEIGHT, 0, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, 0);
-#else
     glEnable(GL_TEXTURE_2D);
     glEnableClientState(GL_VERTEX_ARRAY);
     glEnableClientState(GL_TEXTURE_COORD_ARRAY);
@@ -305,7 +267,6 @@ static void initGL() {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, TEX_WIDTH, TEX_HEIGHT, 0, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, 0);
-#endif
 
     // Initialize shader program for scanline effect
     memset(&shader, 0, sizeof(ShaderInfo));
@@ -327,15 +288,9 @@ static void initGL() {
         // Print debug info
         printf("Shader program created successfully. scanline uniform location: %d\n", shader.scanline);
     } else {
-        printf("Failed to create shader program\n");
-    }
-    
-    // Fall back to fixed function pipeline if shader fails
-    if (!shader.program) {
-#if !defined RASPPI
         glDisable(GL_VERTEX_PROGRAM_ARB);
         glDisable(GL_FRAGMENT_PROGRAM_ARB);
-#endif
+        printf("Failed to create shader program\n");
     }
 }
 
@@ -381,59 +336,6 @@ int piInitVideo()
 	// SDL_SetRenderDrawColor(rdr, 0xff, 0, 0, 0xff);
 	initGL();
 	return 1;
-#if 0
-	msxScreen = (char*)calloc(1, BIT_DEPTH / 8 * TEX_WIDTH * TEX_HEIGHT);
-	if (!msxScreen) {
-		fprintf(stderr, "Error allocating screen texture\n");
-		memset(msxScreen, BIT_DEPTH / 8 * TEX_WIDTH * TEX_HEIGHT, 0xf0);
-		return 0;
-	}
-	fprintf(stderr, "Initializing shaders...\n");
-
-	// Init shader resources
-	memset(&shader, 0, sizeof(ShaderInfo));
-	shader.program = createProgram(vertexShaderSrc, fragmentShaderSrc);
-	if (!shader.program) {
-		fprintf(stderr, "createProgram() failed\n");
-		return 0;
-	}
-
-	fprintf(stderr, "Initializing textures/buffers...\n");
-
-	shader.a_position	= glGetAttribLocation(shader.program,	"a_position");
-	shader.a_texcoord	= glGetAttribLocation(shader.program,	"a_texcoord");
-	shader.u_vp_matrix	= glGetUniformLocation(shader.program,	"u_vp_matrix");
-	shader.u_texture	= glGetUniformLocation(shader.program,	"u_texture");
-	shader.scanline		= glGetUniformLocation(shader.program,  "scanline");
-
-	glEnable(GL_TEXTURE_2D);
-	glGenTextures(1, textures);
-	// glBindTexture(GL_TEXTURE_2D, textures[0]);
-	// glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, TEX_WIDTH, TEX_HEIGHT, 0, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, msxScreen);
-	glUniform1i(shader.scanline, 1);
-	// glGenBuffers(3, buffers);
-	// glBindBuffer(GL_ARRAY_BUFFER, buffers[0]);
-	// glBufferData(GL_ARRAY_BUFFER, kVertexCount * sizeof(GLfloat) * 3, vertices, GL_STATIC_DRAW);
-	// glBindBuffer(GL_ARRAY_BUFFER, buffers[1]);
-	// glBufferData(GL_ARRAY_BUFFER, kVertexCount * sizeof(GLfloat) * 2, uvs, GL_STATIC_DRAW);
-	// glBindBuffer(GL_ARRAY_BUFFER, 0);
-	// glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffers[2]);
-	// glBufferData(GL_ELEMENT_ARRAY_BUFFER, kIndexCount * sizeof(GL_UNSIGNED_SHORT), indices, GL_STATIC_DRAW);
-	// glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
-	// glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-	glDisable(GL_DEPTH_TEST);
-	glDisable(GL_DITHER);
-
-//	fprintf(stderr, "Setting up screen...\n");
-
-	fprintf(stderr, "Initializing SDL video...\n");
-
-	// We're doing our own video rendering - this is just so SDL-based keyboard
-	// can work
-	// sdlScreen = SDL_SetVideoMode(0, 0, 0, 0);//SDL_ASYNCBLIT);
-	return 1;
-#endif	
 }
 
 void piDestroyVideo()
@@ -447,15 +349,15 @@ void piDestroyVideo()
 
 	// Destroy shader resources
 	if (shader.program) {
-		// glDeleteProgram(shader.program);
+		glDeleteProgram(shader.program);
 		// glDeleteBuffers(3, buffers);
-		glDeleteTextures(1, textures);
 	}
-	
+	glDeleteTextures(1, textures);
 	// Release OpenGL resources
 }
 
 static void draw() {
+	static char scanline = -1;
     FrameBuffer* frameBuffer = frameBufferFlipViewFrame(properties->emulation.syncMethod == P_EMU_SYNCTOVBLANKASYNC);
     if (frameBuffer == NULL) {
         frameBuffer = frameBufferGetWhiteNoiseFrame();
@@ -468,45 +370,71 @@ static void draw() {
         msxScreenPitch = frameBuffer->maxWidth * (width+1);
         VertexCoord[2] = VertexCoord[6] = FB_MAX_LINE_WIDTH * FB_MAX_LINE_WIDTH / msxScreenPitch;
         VertexCoord[5] = VertexCoord[7] = FB_MAX_LINES * FB_MAX_LINES / height;
-        if (video->scanLinesEnable && shader.program) {
-            TexCoord[6] = TexCoord[2] = VertexCoord[2];
-            TexCoord[5] = TexCoord[7] = VertexCoord[7];
-        } else {
-            TexCoord[0] = 0.0f; TexCoord[1] = 0.0f; 
-            TexCoord[2] = 1.0f; TexCoord[3] = 0.0f;  
-            TexCoord[4] = 0.0f; TexCoord[5] = 1.f; 
-            TexCoord[6] = 1.0f; TexCoord[7] = 1.f;
-        }
+		TexCoord[0] = 0.0f; TexCoord[1] = 0.0f; 
+		TexCoord[2] = 1.0f; TexCoord[3] = 0.0f;  
+		TexCoord[4] = 0.0f; TexCoord[5] = 1.f; 
+		TexCoord[6] = 1.0f; TexCoord[7] = 1.f;
         printf("width:%d, height=%d\n", msxScreenPitch, height);
-    }
+		if (shader.program) {
+			TexCoord[6] = TexCoord[2] = VertexCoord[2];
+			TexCoord[5] = TexCoord[7] = VertexCoord[7];
+		// Use shader program for scanlines
+			// glUseProgram(shader.program);
+			glUniform1i(shader.u_texture, 0);
+			glUniform1i(shader.scanline, 1);
+			glUniform1i(shader.width, width+1);
+			
+			// 버텍스 및 텍스처 좌표 설정
+			if (shader.a_position != -1) {
+				glVertexAttribPointer(shader.a_position, 2, GL_FLOAT, GL_FALSE, 0, VertexCoord);
+				glEnableVertexAttribArray(shader.a_position);
+			}
+			
+			if (shader.a_texcoord != -1) {
+				glVertexAttribPointer(shader.a_texcoord, 2, GL_FLOAT, GL_FALSE, 0, TexCoord);
+				glEnableVertexAttribArray(shader.a_texcoord);
+			}
+		}
+	}
 
+	if (video && (video->scanLinesEnable != scanline || scanline == -1))
+	{
+		if (video->scanLinesEnable)
+		{
+			glUseProgram(shader.program);
+			// VertexCoord[2] = VertexCoord[6] = FB_MAX_LINE_WIDTH * FB_MAX_LINE_WIDTH / msxScreenPitch;
+			// VertexCoord[5] = VertexCoord[7] = FB_MAX_LINES * FB_MAX_LINES / height;
+			// glUniform1i(shader.u_texture, 0);
+			// glUniform1i(shader.scanline, 1);
+			// glUniform1i(shader.width, width+1);
+			
+			// // 버텍스 및 텍스처 좌표 설정
+			// if (shader.a_position != -1) {
+			// 	glVertexAttribPointer(shader.a_position, 2, GL_FLOAT, GL_FALSE, 0, VertexCoord);
+			// 	glEnableVertexAttribArray(shader.a_position);
+			// }
+			
+			// if (shader.a_texcoord != -1) {
+			// 	glVertexAttribPointer(shader.a_texcoord, 2, GL_FLOAT, GL_FALSE, 0, TexCoord);
+			// 	glEnableVertexAttribArray(shader.a_texcoord);
+			// }
+		}
+		else
+		{
+			glUseProgram(0);
+			TexCoord[0] = 0.0f; TexCoord[1] = 0.0f; 
+			TexCoord[2] = 1.0f; TexCoord[3] = 0.0f;  
+			TexCoord[4] = 0.0f; TexCoord[5] = 1.f; 
+			TexCoord[6] = 1.0f; TexCoord[7] = 1.f;		
+		}
+		scanline = video->scanLinesEnable;
+	}
+    // Check if scanlines are enabled and shader is available
     // Update texture with frame data
     glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, FB_MAX_LINE_WIDTH, height, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, frameBuffer->fb);
-    
-    // Check if scanlines are enabled and shader is available
-    if (video && video->scanLinesEnable && shader.program) {
-        // Use shader program for scanlines
-        glUseProgram(shader.program);
-        glUniform1i(shader.u_texture, 0);
-        glUniform1i(shader.scanline, 1);
-        glUniform1i(shader.width, width+1);
-        
-        // 버텍스 및 텍스처 좌표 설정
-        if (shader.a_position != -1) {
-            glVertexAttribPointer(shader.a_position, 2, GL_FLOAT, GL_FALSE, 0, VertexCoord);
-            glEnableVertexAttribArray(shader.a_position);
-        }
-        
-        if (shader.a_texcoord != -1) {
-            glVertexAttribPointer(shader.a_texcoord, 2, GL_FLOAT, GL_FALSE, 0, TexCoord);
-            glEnableVertexAttribArray(shader.a_texcoord);
-        }
-    } else {
-        // Use fixed function pipeline
-        glVertexPointer(2, GL_FLOAT, 0, VertexCoord);
-        glTexCoordPointer(2, GL_FLOAT, 0, TexCoord);
-        glUseProgram(0);    
-    }
+	// Use fixed function pipeline
+	glVertexPointer(2, GL_FLOAT, 0, VertexCoord);
+	glTexCoordPointer(2, GL_FLOAT, 0, TexCoord);
     
     // Draw the quad
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
