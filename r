@@ -23,7 +23,6 @@ do
 ITEM=`cat ./item`
 choice=$(./msx $ITEM)
 if [ -z $choice ]; then 
-	echo error
 	tput cvvis
 	exit
 fi

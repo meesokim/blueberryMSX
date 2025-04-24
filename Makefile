@@ -25,7 +25,7 @@ AARCH64=/
 
 COMMON_FLAGS = -DUSE_EGL -DIS_RPI -DLSB_FIRST -DNO_ASM -DNO_HIRES_TIMERS -DNO_FILE_HISTORY -DNO_EMBEDDED_SAMPLES -DUSE_SDL -DRASPI 
 CFLAGS   = -g -w -O3 -ffast-math -fstrict-aliasing -fomit-frame-pointer -Wno-implicit-function-declaration -Wno-incompatible-pointer-types $(COMMON_FLAGS) 
-CPPFLAGS = -g $(COMMON_FLAGS)
+CPPFLAGS = -g -Wno-incompatible-pointer-types $(COMMON_FLAGS)
 LDFLAGS  =  
 LIBS     =  -lSDL2 -lz -lpthread -ludev -lGL -lGLESv2 -lbcm2835
 LIBDIR   =  -L$(X11_LIBDIR) -L$(BCM_LIBDIR) 

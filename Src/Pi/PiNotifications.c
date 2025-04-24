@@ -179,7 +179,7 @@ void* ScreenShotPng(void* src, int srcPitch, int width, int height, int* bitmapS
 		srcPtr += srcPitch;
 	}
     compressedSize = 0;
-    compressedData = zipCompress(rawData, rawSize, &compressedSize);
+    compressedData = (BYTE *)zipCompress(rawData, rawSize, &compressedSize);
     free(rawData);
     if (compressedData == NULL) {
         return NULL;

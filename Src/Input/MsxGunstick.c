@@ -90,7 +90,7 @@ static UInt8 read(MsxGunstick* joystick) {
 MsxJoystickDevice* msxGunstickCreate()
 {
     MsxGunstick* joystick = (MsxGunstick*)calloc(1, sizeof(MsxGunstick));
-    joystick->joyDevice.read   = read;
+    joystick->joyDevice.read = (UInt8 *)read;
     
     return (MsxJoystickDevice*)joystick;
 }
