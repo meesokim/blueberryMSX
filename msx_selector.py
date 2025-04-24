@@ -35,8 +35,11 @@ class MSXSelector:
 
         # Get system font
         available_fonts = pygame.font.get_fonts()
-        preferred_fonts = ["khmerossystem", 'arial', 'helvetica', 'segoeui', 'malgun']
-        self.font_name = next((f for f in preferred_fonts if f in available_fonts), available_fonts[0])
+        if len(available_fonts) > 0:
+            preferred_fonts = ["khmerossystem", 'arial', 'helvetica', 'segoeui', 'malgun']
+            self.font_name = next((f for f in preferred_fonts if f in available_fonts), available_fonts[0])
+        else:
+            self.font_name = None
         # Adjust font sizes for fullscreen
         base_font_size = int(self.screen_height * 0.0625)  # 6.25% of screen height
         self.font = pygame.font.SysFont(self.font_name, base_font_size)
@@ -303,14 +306,14 @@ class MSXSelector:
 import os, sys
 
 if __name__ == "__main__":
-    ext = 'msxbus'
+    ext = 'zmxbus'
     if len(sys.argv) > 1:
-        ext = 'msxdrive'
+        ext = 'zmxdrive'
     while True:
         selector = MSXSelector()
         selected_machine = selector.run()
         if selected_machine:
            print(f"Final selection: {selected_machine}")
-           os.system(f'./bluemsx-pi /machine "{selected_machine}" /romtype1 {ext} /romtype2 {ext}')
+           os.system(f'./bluemsx-pi /machine "{selected_machine}" /romtype1 {ext} /romtype2 {ext} 2>& /dev/null')
         else:
             sys.exit();

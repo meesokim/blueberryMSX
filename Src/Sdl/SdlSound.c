@@ -272,11 +272,11 @@ static Int32 soundWrite(void* dummy, Int16 *buffer, UInt32 count)
     }
     
     // 디버깅 정보 추가 - 주석 해제
-    static int writeCount = 0;
-    if (writeCount++ % 1000 == 0) {
-        printf("soundWrite called: count=%d bytes, buffer[0]=%d, captureEnabled=%d, channels=%d\n", 
-               count * sdlSound.bytesPerSample, buffer[0], sdlSound.captureEnabled, sdlSound.channels);
-    }
+    // static int writeCount = 0;
+    // if (writeCount++ % 1000 == 0) {
+    //    printf("soundWrite called: count=%d bytes, buffer[0]=%d, captureEnabled=%d, channels=%d\n", 
+    //           count * sdlSound.bytesPerSample, buffer[0], sdlSound.captureEnabled, sdlSound.channels);
+    // }
 
     // 직접 WAV 파일에 쓰기 (믹서 출력 캡처)
     if (sdlSound.captureEnabled && sdlSound.wavFile != NULL) {

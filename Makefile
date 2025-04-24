@@ -27,7 +27,7 @@ COMMON_FLAGS = -DUSE_EGL -DIS_RPI -DLSB_FIRST -DNO_ASM -DNO_HIRES_TIMERS -DNO_FI
 CFLAGS   = -g -w -O3 -ffast-math -fstrict-aliasing -fomit-frame-pointer -Wno-implicit-function-declaration -Wno-incompatible-pointer-types $(COMMON_FLAGS) 
 CPPFLAGS = -g $(COMMON_FLAGS)
 LDFLAGS  =  
-LIBS     =  -lSDL2 -lz -lpthread -ludev -lGL -lGLESv3 -lbcm2835
+LIBS     =  -lSDL2 -lz -lpthread -ludev -lGL -lGLESv2 -lbcm2835
 LIBDIR   =  -L$(X11_LIBDIR) -L$(BCM_LIBDIR) 
 # Uncomment the following line to enable GPIO (requires wiring-pi)
 #CFLAGS   += -DRASPI_GPIO

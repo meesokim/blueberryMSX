@@ -22,7 +22,6 @@ while true;
 do
 ITEM=`cat ./item`
 choice=$(./msx $ITEM)
-echo choice $choice
 if [ -z $choice ]; then 
 	echo error
 	tput cvvis
@@ -33,8 +32,7 @@ if [ -z $1 ]; then
 else
     MSXBUS=zmxdrive
 fi
-echo $MSXBUS
 a=`sed -n ${choice}p < menu`
 echo $choice > ./item
-./bluemsx-pi /machine \"${a}\" /romtype1 $MSXBUS /romtype2 $MSXBUS $2 $3 $4 $5 $6 $7 
+./bluemsx-pi /machine \"${a}\" /romtype1 $MSXBUS /romtype2 $MSXBUS > /dev/null 2>&1 
 done
