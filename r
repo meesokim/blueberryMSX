@@ -6,10 +6,14 @@ MSXBUS1='/romtype1 msxbus'
 #amixer cset numid=1 100 > /dev/null
 num=1
 echo "#!/bin/bash"> msx
-echo -n "whiptail --title \"RPMC - Raspberry Pi MSX Clone\" --menu \"Choose a Machine\" 25 78 16 " >> msx
+if [ -z $1 ]; then
+   echo -n "whiptail --title \"RPMC - Raspberry Pi MSX Clone\" --menu \"Choose a Machine\" 25 78 16 " >> msx
+else
+   echo -n "whiptail --title \"ZemmixDrive - Raspberry Pi MSX\" --menu \"Choose a Machine\" 25 78 17 " >> msx
+fi
 echo -n "" > menu
 while machine='' read -r line || [[ -n "$line" ]]; do
-	if [[ $line =~ .*$1.* ]]; then
+	if [[ $line =~ .*$2.* ]]; then
 		echo $line >> menu
 		echo -n "\"$num\" \"$line\" " >> msx
 		num=$((num + 1))
@@ -30,6 +34,10 @@ if [ -z $1 ]; then
     MSXBUS=zmxbus
 else
     MSXBUS=zmxdrive
+    export SDCARD=`lsblk -l | grep vfat | awk '{print $7 }'`
+    if [ -z $SDCARD ]; then
+        unset SDCARD
+    fi
 fi
 a=`sed -n ${choice}p < menu`
 echo $choice > ./item
