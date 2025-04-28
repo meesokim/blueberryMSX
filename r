@@ -34,7 +34,7 @@ if [ -z $1 ]; then
     MSXBUS=zmxbus
 else
     MSXBUS=zmxdrive
-    export SDCARD=`lsblk -l | grep vfat | awk '{print $7 }'`
+    export SDCARD=`lsblk -l | grep vfat | awk '{print $7 }' | sed -n 1p`
     if [ -z $SDCARD ]; then
         unset SDCARD
     fi
