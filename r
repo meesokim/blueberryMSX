@@ -1,4 +1,5 @@
 #!/bin/bash
+cd "$(dirname "$0")"
 FILE1="./msx"
 FILE2="./menu"
 ITEM=`cat ./item`
@@ -7,7 +8,7 @@ MSXBUS1='/romtype1 msxbus'
 num=1
 echo "#!/bin/bash"> msx
 if [ -z $1 ]; then
-   echo -n "whiptail --title \"RPMC - Raspberry Pi MSX Clone\" --menu \"Choose a Machine\" 25 78 16 " >> msx
+   echo -n "whiptail --title \"ZemmixBus - Raspberry Pi MSX Clone\" --menu \"Choose a Machine\" 25 78 16 " >> msx
 else
    echo -n "whiptail --title \"ZemmixDrive - Raspberry Pi MSX\" --menu \"Choose a Machine\" 25 78 17 " >> msx
 fi
