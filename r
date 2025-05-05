@@ -42,5 +42,5 @@ else
 fi
 a=`sed -n ${choice}p < menu`
 echo $choice > ./item
-./bluemsx-pi /machine \"${a}\" /romtype1 $MSXBUS /romtype2 $MSXBUS > /dev/null 2>&1 
+./bluemsx-pi /machine ${a} /romtype1 $MSXBUS /romtype2 $MSXBUS > /dev/null 2>&1 
 done
