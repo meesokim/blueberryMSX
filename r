@@ -1,4 +1,5 @@
 #!/bin/bash
+cd "$(dirname "$0")"
 FILE1="./msx"
 FILE2="./menu"
 ITEM=`cat ./item`
@@ -7,7 +8,7 @@ MSXBUS1='/romtype1 msxbus'
 num=1
 echo "#!/bin/bash"> msx
 if [ -z $1 ]; then
-   echo -n "whiptail --title \"RPMC - Raspberry Pi MSX Clone\" --menu \"Choose a Machine\" 25 78 16 " >> msx
+   echo -n "whiptail --title \"ZemmixBus - Raspberry Pi MSX Clone\" --menu \"Choose a Machine\" 25 78 16 " >> msx
 else
    echo -n "whiptail --title \"ZemmixDrive - Raspberry Pi MSX\" --menu \"Choose a Machine\" 25 78 17 " >> msx
 fi
@@ -34,12 +35,12 @@ if [ -z $1 ]; then
     MSXBUS=zmxbus
 else
     MSXBUS=zmxdrive
-    export SDCARD=`lsblk -l | grep vfat | awk '{print $7 }'`
+    export SDCARD=`lsblk -l | grep vfat | awk '{print $7 }' | sed -n 1p`
     if [ -z $SDCARD ]; then
         unset SDCARD
     fi
 fi
 a=`sed -n ${choice}p < menu`
 echo $choice > ./item
-./bluemsx-pi /machine \"${a}\" /romtype1 $MSXBUS /romtype2 $MSXBUS > /dev/null 2>&1 
+./bluemsx-pi /machine ${a} /romtype1 $MSXBUS /romtype2 $MSXBUS > /dev/null 2>&1 
 done

@@ -197,6 +197,11 @@ static void handleEvent(SDL_Event* event)
 		joystickAxisUpdate(event);
 		break;
 	case SDL_KEYDOWN:
+		if (event->key.keysym.scancode == SDL_SCANCODE_VOLUMEDOWN)
+			system("pactl set-sink-volume 0 -2%");
+		else if (event->key.keysym.scancode == SDL_SCANCODE_VOLUMEUP)
+			system("pactl set-sink-volume 0 +2%");
+
 		keyboardUpdate(event);
 		shortcutCheckDown(shortcuts, HOTKEY_TYPE_KEYBOARD, event->key.keysym.mod, event->key.keysym.sym);
 		break;

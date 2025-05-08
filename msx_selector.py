@@ -313,7 +313,14 @@ if __name__ == "__main__":
         selector = MSXSelector()
         selected_machine = selector.run()
         if selected_machine:
-           print(f"Final selection: {selected_machine}")
-           os.system(f'./bluemsx-pi /machine "{selected_machine}" /romtype1 {ext} /romtype2 {ext} 2>& /dev/null')
+            os.system("lsblk -l | grep vfat | awk '{print $7 }' | sed -n 1p > SDCARD")
+            filename = 'SDCARD'
+            SDCARD = '.'
+            if os.path.exists(filename):
+                SDCARD=open(filename).read()[:-1]
+            print(f"Final selection: {selected_machine}")
+            cmd = f'SDCARD={SDCARD} ./bluemsx-pi /machine "{selected_machine}" /romtype1 {ext} /romtype2 {ext}'
+            print(cmd)
+            os.system(cmd)
         else:
             sys.exit();
