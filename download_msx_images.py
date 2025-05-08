@@ -2,6 +2,8 @@ import os
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
+from webdriver_manager.chrome import ChromeDriverManager
 import requests
 import time
 import urllib.parse
@@ -35,9 +37,14 @@ def download_machine_images():
     chrome_options.add_argument('--no-sandbox')
     chrome_options.add_argument('--disable-dev-shm-usage')
 
+    # service = Service('./chrome-linux64/chrome', options=chrome_options)
+    # service.start()
+    # driver = webdriver.Remote(service.service_url)
     # Initialize the browser
+    # driver = webdriver.Chrome('chrome-linux64/chrome')
+    # driver = webdriver.Chrome(service=Service(executable_path=ChromeDriverManager().install()),options=chrome_options)
+    # driver = webdriver.Chrome(service=Service(executable_path=r'chrome-linux64/chrome'),options=chrome_options)
     driver = webdriver.Chrome(options=chrome_options)
-
     # Read machines file
     with open('machines', 'r') as f:
         machines = f.readlines()
@@ -55,7 +62,7 @@ def download_machine_images():
         print(machine)
         try:
             # Prepare search term and URL
-            search_term = f"{machine} computer vintage"
+            search_term = f"msx computer real machine photo {machine}"
             encoded_search = urllib.parse.quote(search_term)
             search_url = f"https://www.google.com/search?q={encoded_search}&tbm=isch"
 
