@@ -7,8 +7,9 @@ MSXBUS1='/romtype1 msxbus'
 #amixer cset numid=1 100 > /dev/null
 num=1
 echo "#!/bin/bash"> msx
-if [ -z $1 ]; then
-   echo -n "whiptail --title \"ZemmixBus - Raspberry Pi MSX Clone\" --menu \"Choose a Machine\" 25 78 16 " >> msx
+rasppi=`awk '{ print $3 }' < /proc/device-tree/model`
+if [ -z $1 ] && [ "${rasppi}" != "5" ]; then
+   echo -n "whiptail --title \"ZemmixBus ${rasppi} - Raspberry Pi MSX Clone\" --menu \"Choose a Machine\" 25 78 16 " >> msx
 else
    echo -n "whiptail --title \"ZemmixDrive - Raspberry Pi MSX\" --menu \"Choose a Machine\" 25 78 17 " >> msx
 fi
@@ -31,7 +32,7 @@ if [ -z $choice ]; then
 	tput cvvis
 	exit
 fi
-if [ -z $1 ]; then
+if [ -z $1 ] && [ "${rasppi}" != "5" ]; then
     MSXBUS=zmxbus
 else
     MSXBUS=zmxdrive
