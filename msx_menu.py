@@ -111,8 +111,10 @@ def run_msx_emulator(machine):
         if os.path.exists(BLUEMSX):
             cmd = [BLUEMSX, "/machine", machine, "/romtype1", bmsxbus, "/romtype2", bmsxbus]
         elif os.path.exists(OPENMSX):
+            if sys.platform == 'win32':
+                OPENMSX = "openmsx.exe"
             cmd = [OPENMSX, "-machine", machine, "-ext", omsxbus]
-        # print(' '.join(cmd))
+        #print(' '.join(cmd))
         subprocess.run(
             cmd,
             stdout=subprocess.DEVNULL,
