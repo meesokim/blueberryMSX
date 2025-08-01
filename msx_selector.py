@@ -4,7 +4,7 @@ import sys
 import random  # 추가
 
 class MSXSelector:
-    def __init__(self):
+    def __init__(self, selected_machine):
         # Set SDL video driver before pygame init
         # os.environ['SDL_VIDEODRIVER'] = 'kmsdrm'
         # os.environ["SDL_VIDEODRIVER"] = "dummy"
@@ -65,6 +65,9 @@ class MSXSelector:
         self.scroll_speed = 15
         self.image_width = 400
         self.image_spacing = 50
+        
+        if selected_machine is not None:
+            self.current_index = self.image_names.index(selected_machine)
 
     def load_images_and_categories(self):
         with open('machines', 'r') as f:
@@ -309,15 +312,17 @@ if __name__ == "__main__":
     ext = 'zmxbus'
     if len(sys.argv) > 1:
         ext = 'zmxdrive'
+    selected_machine = None
     while True:
-        selector = MSXSelector()
+        selector = MSXSelector(selected_machine)
         selected_machine = selector.run()
         if selected_machine:
-            os.system("lsblk -l | grep vfat | awk '{print $7 }' | sed -n 1p > SDCARD")
-            filename = 'SDCARD'
-            SDCARD = '.'
-            if os.path.exists(filename):
-                SDCARD=open(filename).read()[:-1]
+            SDCARD = os.environ['SDCARD']
+            if not len(SDCARD):
+                filename = 'SDCARD'
+                os.system("lsblk -l | grep vfat | awk '{print $7 }' | sed -n 1p > " + filename)
+                if os.path.exists(filename):
+                    SDCARD=open(filename).read()[:-1]
             print(f"Final selection: {selected_machine}")
             cmd = f'SDCARD={SDCARD} ./bluemsx-pi /machine "{selected_machine}" /romtype1 {ext} /romtype2 {ext}'
             print(cmd)
