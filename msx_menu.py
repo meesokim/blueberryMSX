@@ -114,7 +114,11 @@ def run_msx_emulator(machine):
             if sys.platform == 'win32':
                 OPENMSX = "openmsx.exe"
             cmd = [OPENMSX, "-machine", machine, "-ext", omsxbus]
+<<<<<<< HEAD
         # print(' '.join(cmd))
+=======
+        #print(' '.join(cmd))
+>>>>>>> 384657e3fe71bca99ad2cedfaeec287165f7a03f
         subprocess.run(
             cmd,
             stdout=subprocess.DEVNULL,

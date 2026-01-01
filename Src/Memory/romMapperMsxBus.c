@@ -148,7 +148,7 @@ static void initialize() {
     msxinit = (InitfnPtr)GetZemmixFunc(hDLL, (char*)MSXINIT);
     resetz = (ResetfnPtr)GetZemmixFunc(hDLL, (char*)MSXRESET);   
     msxstatus = (StatusfnPtr)GetZemmixFunc(hDLL, (char*)MSXSTATUS);
-    msxinit(0);
+    msxinit(getenv("SDCARD"));
     resetz(0);
     sleep(1);
     resetz(1);		
