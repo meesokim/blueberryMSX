@@ -101,7 +101,7 @@ static UInt8 read(RomMapperMsxBus* rm, UInt16 address)
     if (address > 0xbfff)
 	ret = 0xff;
     else
-        ret = msxread(rm->cart > 1 ? RD_SLTSL2 : RD_SLTSL1, address);
+        ret = msxread(rm->cart > 0 ? RD_SLTSL2 : RD_SLTSL1, address);
     //printf("r%04x: %02x\n", address, ret);
     return ret;
 }
@@ -118,7 +118,7 @@ static void write(RomMapperMsxBus* rm, UInt16 address, UInt8 value)
     }
 #endif
     // printf("w%04x: %02x\n", address, value);
-    return msxwrite(rm->cart > 1 ? WR_SLTSL2 : WR_SLTSL1, address, value);
+    return msxwrite(rm->cart > 0 ? WR_SLTSL2 : WR_SLTSL1, address, value);
 }
 
 static void reset(RomMapperMsxBus* rm)
@@ -136,7 +136,7 @@ static const int mon_ports[] = {}; // 0x7c, 0x7d, 0x7e, 0x7f, 0xa0, 0xa1, 0xa2, 
 static void initialize() {
     if (hDLL)
         CloseZemmix(hDLL);
-    hDLL = OpenZemmix((char*)ZMX_DRIVER, RTLD_LAZY);
+    hDLL = OpenZemmix(RTLD_LAZY);
     if (!hDLL)
     {
         printf("DLL open error!! %s\n", ZMX_DRIVER);

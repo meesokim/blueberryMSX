@@ -114,7 +114,7 @@ def run_msx_emulator(machine):
             if sys.platform == 'win32':
                 OPENMSX = "openmsx.exe"
             cmd = [OPENMSX, "-machine", machine, "-ext", omsxbus]
-        print(' '.join(cmd))
+        # print(' '.join(cmd))
         subprocess.run(
             cmd,
             stdout=subprocess.DEVNULL,
@@ -229,7 +229,7 @@ class MSXMenuApp:
         
         # 스타일 설정
         style = Style.from_dict({
-            'filter': '#ansiblue',
+            'filter': '#ansiyellow',
             'selected': 'reverse',
         })
         

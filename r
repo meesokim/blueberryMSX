@@ -8,11 +8,11 @@ RASMODEL='/proc/device-tree/model'
 #amixer cset numid=1 100 > /dev/null
 num=1
 echo "#!/bin/bash"> msx
-
+chmod +x msx
 if [ -f $RASMODEL ]; then
     rasppi=`awk '{ print $3 }' < $RASMODEL`
 fi
-if [ -z $1 ] && [ "${rasppi}" == "4" ]; then
+if [ -z $1 ] && [ "${rasppi}" == "5" ]; then
    echo -n "whiptail --title \"ZemmixBus ${rasppi} - Raspberry Pi MSX Clone\" --menu \"Choose a Machine\" 25 78 16 " >> msx
 else
    echo -n "whiptail --title \"ZemmixDrive - Raspberry Pi MSX\" --menu \"Choose a Machine\" 25 78 17 " >> msx

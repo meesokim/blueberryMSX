@@ -12,12 +12,16 @@
 #elif defined(__GNUC__)
     #include <dlfcn.h>
     #define ZEMMIX_BUS "./zmxbus.zxl"    
-    #define ZEMMIX_DRIVE "./zmxdrive.zxl"
+    #define ZEMMIX_BUS1 "./zmxbus_1.zxl"
+    #define ZEMMIX_BUS2 "./zmxbus_2.zxl"
+    #define ZEMMIX_RPI5_BUS "./zmxbus5.zxl"
+    #define ZEMMIX_RPI5_BUS2 "./zmxbus5_2.zxl"
+    #define ZEMMIX_DRIVE "./zmxdrive.zxl"    
 #else
     #error define your compiler
 #endif
 
-void *OpenZemmix(char *pcDllname, int iMode);
+void *OpenZemmix(int iMode);
 void *GetZemmixFunc(void *Lib, char *Fnname);
 int CloseZemmix(void *hDLL);
 char *GetZemmixError();

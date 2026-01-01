@@ -583,7 +583,7 @@ struct IniFile
 };
 
 static const ShortcutHotkey quitHotKey = {
-    HOTKEY_TYPE_KEYBOARD, 0, SDLK_F12,
+    HOTKEY_TYPE_KEYBOARD, KMOD_LALT, SDLK_F4,
 };
 static const ShortcutHotkey disableFrameskipHotKey = {
     HOTKEY_TYPE_KEYBOARD, 0, SDLK_F11,

@@ -136,7 +136,7 @@ static const int mon_ports[] = {}; // 0x7c, 0x7d, 0x7e, 0x7f, 0xa0, 0xa1, 0xa2, 
 static void initialize() {
     if (hDLL)
         CloseZemmix(hDLL);
-    hDLL = OpenZemmix((char*)ZEMMIX_DRIVE, RTLD_LAZY);
+    hDLL = OpenZemmixDrive(RTLD_LAZY);
     if (!hDLL)
     {
         printf("DLL open error!! %s\n", ZEMMIX_DRIVE);
