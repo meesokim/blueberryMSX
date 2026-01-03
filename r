@@ -12,7 +12,7 @@ chmod +x msx
 if [ -f $RASMODEL ]; then
     rasppi=`awk '{ print $3 }' < $RASMODEL`
 fi
-if [ -z $1 ] && [ "${rasppi}" == "5" ]; then
+if [ -z $1 ]; then
    echo -n "whiptail --title \"ZemmixBus ${rasppi} - Raspberry Pi MSX Clone\" --menu \"Choose a Machine\" 25 78 16 " >> msx
 else
    echo -n "whiptail --title \"ZemmixDrive - Raspberry Pi MSX\" --menu \"Choose a Machine\" 25 78 17 " >> msx
@@ -27,7 +27,7 @@ while machine='' read -r line || [[ -n "$line" ]]; do
 done < msxmachines
 
 echo -n "--default-item \"\$1\" --clear" >> msx
-echo "3>&2 2>&1 1>&3" >> msx 
+echo -n " 3>&2 2>&1 1>&3" >> msx 
 while true;
 do
 ITEM=`cat ./item`
@@ -36,7 +36,7 @@ if [ -z $choice ]; then
 	tput cvvis
 	exit
 fi
-if [ -z $1 ] && [ "${rasppi}" != "5" ]; then
+if [ -z $1 ]; then
     MSXBUS=zmxbus
 else
     MSXBUS=zmxdrive
@@ -47,5 +47,5 @@ else
 fi
 a=`sed -n ${choice}p < menu`
 echo $choice > ./item
-./bluemsx-pi /machine ${a} /romtype1 $MSXBUS /romtype2 $MSXBUS > /dev/null 2>&1 
+./bluemsx /machine ${a} /romtype1 $MSXBUS /romtype2 $MSXBUS > /dev/null 2>&1 
 done
