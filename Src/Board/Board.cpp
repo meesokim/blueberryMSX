@@ -436,7 +436,7 @@ static void boardCaptureLoadState()
 
     version = saveStateGet(state, "version", 0);
 
-    cap.state = saveStateGet(state, "state", CAPTURE_IDLE);
+    cap.state = (CaptureState)saveStateGet(state, "state", CAPTURE_IDLE);
     cap.endTime = saveStateGet(state, "endTime", 0);
     cap.endTime64 = (UInt64)saveStateGet(state, "endTime64Hi", 0) << 32 |
                     (UInt64)saveStateGet(state, "endTime64Lo", 0);
@@ -702,7 +702,7 @@ int boardRun(Machine* machine,
 
         saveStateCreateForRead(stateFile);
 
-        version = zipLoadFile(stateFile, "version", &size);
+        version = (char*)zipLoadFile(stateFile, "version", &size);
         if (version != NULL) {
             if (0 == strncmp(version, saveStateVersion, sizeof(saveStateVersion) - 1)) {
                 loadState = 1;
@@ -716,7 +716,7 @@ int boardRun(Machine* machine,
     }
 
     boardType = machine->board.type;
-    PatchReset(boardType);
+    PatchReset((BoardType)boardType);
 
 #if 0
     useRom     = 0;
@@ -836,7 +836,7 @@ int boardRun(Machine* machine,
 
 BoardType boardGetType()
 {
-    return boardType & BOARD_MASK;
+    return (BoardType)(boardType & BOARD_MASK);
 }
 
 Mixer* boardGetMixer()
@@ -888,7 +888,7 @@ void boardSetMachine(Machine* machine)
     }
 
     boardType = machine->board.type;
-    PatchReset(boardType);
+    PatchReset((BoardType)boardType);
 
     joystickPortUpdateBoardInfo();
 }
@@ -916,7 +916,7 @@ static BoardType boardLoadState(void)
             
     state = saveStateOpenForRead("board");
 
-    boardType      = saveStateGet(state, "boardType", BOARD_MSX);
+    boardType = (BoardType)saveStateGet(state, "boardType", BOARD_MSX);
     boardSysTime64 = (UInt64)saveStateGet(state, "boardSysTime64Hi", 0) << 32 |
                      (UInt64)saveStateGet(state, "boardSysTime64Lo", 0);
     oldTime        = saveStateGet(state, "oldTime", 0);
@@ -954,7 +954,7 @@ static BoardType boardLoadState(void)
     saveStateGetBuffer(state, "casName",  di->tapes[0].name, sizeof(di->tapes[0].name));
     saveStateGetBuffer(state, "casInZip", di->tapes[0].inZipName, sizeof(di->tapes[0].inZipName));
 
-    di->video.vdpSyncMode = saveStateGet(state, "vdpSyncMode", 0);
+    di->video.vdpSyncMode = (VdpSyncMode) saveStateGet(state, "vdpSyncMode", 0);
 
     saveStateClose(state);
 
@@ -1313,7 +1313,7 @@ static int    timeoutCheckBreak;
 
 BoardTimer* boardTimerCreate(BoardTimerCb callback, void* ref)
 {
-    BoardTimer* timer = malloc(sizeof(BoardTimer));
+    BoardTimer* timer = (BoardTimer*) malloc(sizeof(BoardTimer));
 
     timer->next     = timer;
     timer->prev     = timer;

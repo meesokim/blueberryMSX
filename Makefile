@@ -18,7 +18,7 @@ ROOT_DIR   = .
 OUTPUT_DIR = objs
 
 ifdef RASPPI
-SILENT = aarch64-linux-gnu-
+SILENT = 
 BCM_INCDIR= /usr/$(SILENT)
 BCM_LIBDIR= /usr/$(SILENT)/lib
 AARCH64=/
@@ -27,7 +27,7 @@ COMMON_FLAGS = -DUSE_EGL -DIS_RPI -DLSB_FIRST -DNO_ASM -DNO_HIRES_TIMERS -DNO_FI
 CFLAGS   = -g -w -O3 -ffast-math -fstrict-aliasing -fomit-frame-pointer -Wno-implicit-function-declaration -Wno-incompatible-pointer-types $(COMMON_FLAGS) 
 CPPFLAGS = -g $(COMMON_FLAGS)
 LDFLAGS  =  
-LIBS     =  -lSDL2 -lz -lpthread -ludev -lGL -lGLESv2 -lbcm2835
+LIBS     =  -lSDL2 -lz -lpthread -ludev -lGL -lGLESv2 -lbcm2835 -ldl
 LIBDIR   =  -L$(X11_LIBDIR) -L$(BCM_LIBDIR) 
 # Uncomment the following line to enable GPIO (requires wiring-pi)
 #CFLAGS   += -DRASPI_GPIO
@@ -307,7 +307,7 @@ SOURCE_FILES += romMapperDooly.c
 SOURCE_FILES += romMapperMuPack.c
 SOURCE_FILES += romMapperMsxBus.c
 SOURCE_FILES += romMapperMsxDrive.c
-SOURCE_FILES += zmx.cc
+SOURCE_FILES += zmx.c
 
 SOURCE_FILES += Crc32Calc.c
 SOURCE_FILES += MediaDb.cpp
