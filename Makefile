@@ -23,12 +23,12 @@ BCM_INCDIR= /usr/$(SILENT)
 BCM_LIBDIR= /usr/$(SILENT)/lib
 AARCH64=/
 
-COMMON_FLAGS = -DUSE_EGL -DIS_RPI -DLSB_FIRST -DNO_ASM -DNO_HIRES_TIMERS -DNO_FILE_HISTORY -DNO_EMBEDDED_SAMPLES -DUSE_SDL -DRASPI 
+COMMON_FLAGS = -DUSE_EGL -DIS_RPI -DLSB_FIRST -DNO_ASM -DNO_HIRES_TIMERS -DNO_FILE_HISTORY -DNO_EMBEDDED_SAMPLES -DUSE_SDL -DRASPPI 
 CFLAGS   = -g -w -O3 -ffast-math -fstrict-aliasing -fomit-frame-pointer -Wno-implicit-function-declaration -Wno-incompatible-pointer-types $(COMMON_FLAGS) 
 CPPFLAGS = -g $(COMMON_FLAGS)
 LDFLAGS  =  
-LIBS     =  -lSDL2 -lz -lpthread -ludev -lGL -lGLESv2 -lbcm2835 -ldl
-LIBDIR   =  -L$(X11_LIBDIR) -L$(BCM_LIBDIR) 
+LIBS     =  -lSDL2 -lz -lpthread -ludev -lGL -lbrcmGLESv2 -lbcm2835 -ldl -lbcm_host -lbrcmEGL
+LIBDIR   =  -L$(X11_LIBDIR) -L$(BCM_LIBDIR) -L/opt/vc/lib
 # Uncomment the following line to enable GPIO (requires wiring-pi)
 #CFLAGS   += -DRASPI_GPIO
 ifdef RASPI_GPIO
@@ -86,8 +86,8 @@ LDFLAGS += $(SDL_LDFLAGS)
 #
 INCLUDE = 
 ifdef RASPPI 
-INCLUDE += -I/opt/vc/include/interface/vcos/pthreads -I/opt/vc/include/interface/vmcs_host/linux
-INCLUDE += -I$(BCM_INCDIR)
+INCLUDE += -I/opt/vc/include -I/opt/vc/include/interface/vcos/pthreads -I/opt/vc/include/interface/vmcs_host/linux
+# INCLUDE += -I$(BCM_INCDIR)
 endif
 INCLUDE += -I$(ROOT_DIR)/Src/Arch
 INCLUDE += -I$(ROOT_DIR)/Src/Bios
@@ -461,7 +461,7 @@ clean: clean_$(TARGET)
 
 $(TARGET): $(OUTPUT_OBJS)
 	$(ECHO) Linking $@...
-	$(LD) -o $@ $(OUTPUT_OBJS) $(LIBS) $(LDFLAGS) $(LIB_DIR)
+	$(LD) -o $@ $(OUTPUT_OBJS) $(LIBS) $(LDFLAGS) $(LIBDIR)
 
 .SUFFIXES: .dep
 DEPS := $(OBJS:.o=.dep)
@@ -486,6 +486,7 @@ clean_$(TARGET):
 
 $(OUTPUT_DIR):
 	$(ECHO) Creating directory $@...
+	@$(MKDIR) objs
 	@$(MKDIR) $(OUTPUT_DIR)
 
 $(OUTPUT_DIR)/%.o: %.c  $(HEADER_FILES)

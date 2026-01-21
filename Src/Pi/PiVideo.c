@@ -40,15 +40,19 @@
 #include <bcm_host.h>
 #include <interface/vchiq_arm/vchiq_if.h>
 #include <EGL/egl.h>
-#include <GLES3/gl31.h> // OpenGL ES 3.1 헤더로 변경
-#include <SDL_opengles2.h>
+//#include <GLES2/gl2.h>
+#include <SDL_opengl.h>
+#include <SDL.h>
+static EGL_DISPMANX_WINDOW_T nativeWindow;
+static EGLDisplay display = NULL;
+static EGLSurface surface = NULL;
+static EGLContext context = NULL;
 #else
 #include <SDL.h>
 #include <SDL_opengl.h>
 #include <GL/glext.h>
 #endif
 
-#include <GL/glext.h>
 typedef	struct ShaderInfo {
 	GLuint program;
 	GLint a_position;
@@ -296,7 +300,109 @@ static void initGL() {
 
 int piInitVideo()
 {
-    SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO);
+#ifdef RASPPI
+	bcm_host_init();
+	// get an EGL display connection
+	display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+	if (display == EGL_NO_DISPLAY) {
+		fprintf(stderr, "eglGetDisplay() failed: EGL_NO_DISPLAY\n");
+		return 0;
+	}
+
+	// initialize the EGL display connection
+	EGLBoolean result = eglInitialize(display, NULL, NULL);
+	if (result == EGL_FALSE) {
+		fprintf(stderr, "eglInitialize() failed: EGL_FALSE\n");
+		return 0;
+	}
+
+	// get an appropriate EGL frame buffer configuration
+	EGLint numConfig;
+	EGLConfig config;
+	static const EGLint attributeList[] = {
+		EGL_RED_SIZE, 8,
+		EGL_GREEN_SIZE, 8,
+		EGL_BLUE_SIZE, 8,
+		EGL_ALPHA_SIZE, 8,
+		EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
+		EGL_NONE
+	};
+	result = eglChooseConfig(display, attributeList, &config, 1, &numConfig);
+	if (result == EGL_FALSE) {
+		fprintf(stderr, "eglChooseConfig() failed: EGL_FALSE\n");
+		return 0;
+	}
+
+	result = eglBindAPI(EGL_OPENGL_ES_API);
+	if (result == EGL_FALSE) {
+		fprintf(stderr, "eglBindAPI() failed: EGL_FALSE\n");
+		return 0;
+	}
+
+	// create an EGL rendering context
+	static const EGLint contextAttributes[] = {
+		EGL_CONTEXT_CLIENT_VERSION, 2,
+		EGL_NONE
+	};
+	context = eglCreateContext(display, config, EGL_NO_CONTEXT, contextAttributes);
+	if (context == EGL_NO_CONTEXT) {
+		fprintf(stderr, "eglCreateContext() failed: EGL_NO_CONTEXT\n");
+		return 0;
+	}
+
+	// create an EGL window surface
+	int32_t success = graphics_get_display_size(0, &screenWidth, &screenHeight);
+	if (result < 0) {
+		fprintf(stderr, "graphics_get_display_size() failed: < 0\n");
+		return 0;
+	}
+
+	printf( "Width/height: %d/%d\n", screenWidth, screenHeight);
+	if (screenHeight < 600)
+	if (screenHeight < 600 && video)
+		video->scanLinesEnable = 0;
+
+	VC_RECT_T dstRect;
+	dstRect.x = 0;
+	dstRect.y = 0;
+	dstRect.width = screenWidth;
+	dstRect.height = screenHeight;
+
+	VC_RECT_T srcRect;
+	srcRect.x = 0;
+	srcRect.y = 0;
+	srcRect.width = screenWidth << 16;
+	srcRect.height = screenHeight << 16;
+
+	DISPMANX_DISPLAY_HANDLE_T dispManDisplay = vc_dispmanx_display_open(0);
+	DISPMANX_UPDATE_HANDLE_T dispmanUpdate = vc_dispmanx_update_start(0);
+	DISPMANX_ELEMENT_HANDLE_T dispmanElement = vc_dispmanx_element_add(dispmanUpdate,
+		dispManDisplay, 0, &dstRect, 0, &srcRect,
+		DISPMANX_PROTECTION_NONE, NULL, NULL, DISPMANX_NO_ROTATE);
+
+	nativeWindow.element = dispmanElement;
+	nativeWindow.width = screenWidth;
+	nativeWindow.height = screenHeight;
+	vc_dispmanx_update_submit_sync(dispmanUpdate);
+
+	fprintf(stderr, "Initializing window surface...\n");
+
+	surface = eglCreateWindowSurface(display, config, &nativeWindow, NULL);
+	if (surface == EGL_NO_SURFACE) {
+		fprintf(stderr, "eglCreateWindowSurface() failed: EGL_NO_SURFACE\n");
+		return 0;
+	}
+
+	fprintf(stderr, "Connecting context to surface...\n");
+
+	// connect the context to the surface
+	result = eglMakeCurrent(display, surface, surface, context);
+	if (result == EGL_FALSE) {
+		fprintf(stderr, "eglMakeCurrent() failed: EGL_FALSE\n");
+		return 0;
+	}
+#endif
+	SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO);
     SDL_ShowCursor(SDL_DISABLE);
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
@@ -323,8 +429,8 @@ int piInitVideo()
 
 	fprintf(stderr, "Connecting context to surface...\n");
 	// connect the context to the surface
-	glc = SDL_GL_CreateContext(wnd);
-	assert(glc);
+//	glc = SDL_GL_CreateContext(wnd);
+//	assert(glc);
 	// SDL_GL_MakeCurrent(wnd, glc);
 	// SDL_GL_SetSwapInterval( 1 );
 	if( SDL_GL_SetSwapInterval( 1 ) < 0 )
@@ -354,6 +460,13 @@ void piDestroyVideo()
 	}
 	glDeleteTextures(1, textures);
 	// Release OpenGL resources
+#ifdef RASPPI
+	eglMakeCurrent(display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+	eglDestroySurface(display, surface);
+	eglDestroyContext(display, context);
+	eglTerminate(display);
+	bcm_host_deinit();
+#endif
 }
 
 static void draw() {
