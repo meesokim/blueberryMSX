@@ -286,7 +286,7 @@ static void RefreshLine0(VDP* vdp, int Y, int X, int X2)
     }
 
     if (!vdp->screenOn || !vdp->drawArea) {
-        Pixel bgColor = vdp->palette[vdp->BGColor];
+        Pixel bgColor = vdp->palette[vdp->BGColor]; if (vdp->screenOn) vdp->drawArea = 1; 
         while (X < X2) {
             linePtr0[0] = bgColor;
             linePtr0[1] = bgColor;
@@ -384,7 +384,7 @@ static void RefreshLine0Plus(VDP* vdp, int Y, int X, int X2)
     }
 
     if (!vdp->screenOn || !vdp->drawArea) {
-        Pixel bgColor = vdp->palette[vdp->BGColor];
+        Pixel bgColor = vdp->palette[vdp->BGColor]; if (vdp->screenOn) vdp->drawArea = 1; 
         while (X < X2) {
             linePtr0p[0] = bgColor;
             linePtr0p[1] = bgColor;
@@ -481,7 +481,7 @@ static void RefreshLine0Mix(VDP* vdp, int Y, int X, int X2)
     }
 
     if (!vdp->screenOn || !vdp->drawArea) {
-        Pixel bgColor = vdp->palette[vdp->BGColor];
+        Pixel bgColor = vdp->palette[vdp->BGColor]; if (vdp->screenOn) vdp->drawArea = 1; 
         while (X < X2) {
             linePtr0m[0] = bgColor;
             linePtr0m[1] = bgColor;
@@ -496,7 +496,7 @@ static void RefreshLine0Mix(VDP* vdp, int Y, int X, int X2)
         }
     }
     else {
-        Pixel bgColor = vdp->palette[vdp->BGColor];
+        Pixel bgColor = vdp->palette[vdp->BGColor]; if (vdp->screenOn) vdp->drawArea = 1; 
         Pixel fgColor = vdp->palette[vdp->FGColor];
 
         while (X < X2) {
@@ -569,7 +569,7 @@ static void RefreshLineTx80(VDP* vdp, int Y, int X, int X2)
     }
 
     if (!vdp->screenOn || !vdp->drawArea) {
-        Pixel bgColor = vdp->palette[vdp->BGColor];
+        Pixel bgColor = vdp->palette[vdp->BGColor]; if (vdp->screenOn) vdp->drawArea = 1; 
         while (X < X2) {
             int j;
             for (j = 0; j < 1; j++) {
@@ -589,7 +589,7 @@ static void RefreshLineTx80(VDP* vdp, int Y, int X, int X2)
     else {
         while (X < X2) {
             if (X == 0 || X == 31) {
-                Pixel bgColor = vdp->palette[vdp->BGColor];
+                Pixel bgColor = vdp->palette[vdp->BGColor]; if (vdp->screenOn) vdp->drawArea = 1; 
                 int j;
                 for (j = 0; j < 1; j++) {
                     linePtr0w[0] = bgColor;
@@ -684,7 +684,7 @@ static void RefreshLineTx80(VDP* vdp, int Y, int X, int X2)
     }
 
     if (!vdp->screenOn || !vdp->drawArea) {
-        Pixel bgColor = vdp->palette[vdp->BGColor];
+        Pixel bgColor = vdp->palette[vdp->BGColor]; if (vdp->screenOn) vdp->drawArea = 1; 
         while (X < X2) {
             int j;
             for (j = 0; j < 2; j++) {
@@ -704,7 +704,7 @@ static void RefreshLineTx80(VDP* vdp, int Y, int X, int X2)
     else {
         while (X < X2) {
             if (X == 0 || X == 31) {
-                Pixel bgColor = vdp->palette[vdp->BGColor];
+                Pixel bgColor = vdp->palette[vdp->BGColor]; if (vdp->screenOn) vdp->drawArea = 1; 
                 int j;
 
                 if (X == 31) linePtr0w -= hScroll;
@@ -801,7 +801,7 @@ static void RefreshLine1(VDP* vdp, int Y, int X, int X2)
         }
 
         if (vdpIsEdgeMasked(vdp->vdpRegs)) {
-            Pixel bgColor = vdp->palette[vdp->BGColor];
+            Pixel bgColor = vdp->palette[vdp->BGColor]; if (vdp->screenOn) vdp->drawArea = 1; 
             linePtr1[0] = bgColor;
             linePtr1[1] = bgColor;
             linePtr1[2] = bgColor;
@@ -816,7 +816,7 @@ static void RefreshLine1(VDP* vdp, int Y, int X, int X2)
         }
 
         if (!vdp->screenOn || !vdp->drawArea) {
-            Pixel bgColor = vdp->palette[vdp->BGColor];
+            Pixel bgColor = vdp->palette[vdp->BGColor]; if (vdp->screenOn) vdp->drawArea = 1; 
 
             switch (hScroll & 7) {
             case 1: *linePtr1++ = bgColor; 
@@ -846,7 +846,7 @@ static void RefreshLine1(VDP* vdp, int Y, int X, int X2)
                 }
             }
             else {
-                Pixel bgColor = vdp->palette[vdp->BGColor];
+                Pixel bgColor = vdp->palette[vdp->BGColor]; if (vdp->screenOn) vdp->drawArea = 1; 
 
                 switch (hScroll & 7) {
                 case 1: col = *sprLine++; *linePtr1++ = bgColor; 
@@ -871,7 +871,7 @@ static void RefreshLine1(VDP* vdp, int Y, int X, int X2)
     }
 
     if (!vdp->screenOn || !vdp->drawArea) {
-        Pixel bgColor = vdp->palette[vdp->BGColor];
+        Pixel bgColor = vdp->palette[vdp->BGColor]; if (vdp->screenOn) vdp->drawArea = 1; 
         while (X < X2) {
             linePtr1[0] = bgColor;
             linePtr1[1] = bgColor;
@@ -958,7 +958,7 @@ static void RefreshLine2(VDP* vdp, int Y, int X, int X2)
         }
 
         if (vdpIsEdgeMasked(vdp->vdpRegs)) {
-            Pixel bgColor = vdp->palette[vdp->BGColor];
+            Pixel bgColor = vdp->palette[vdp->BGColor]; if (vdp->screenOn) vdp->drawArea = 1; 
             linePtr2[0] = bgColor;
             linePtr2[1] = bgColor;
             linePtr2[2] = bgColor;
@@ -981,7 +981,7 @@ static void RefreshLine2(VDP* vdp, int Y, int X, int X2)
         charPattern = vdp->vram[vdp->chrGenBase & index];
 
         if (!vdp->screenOn || !vdp->drawArea) {
-            Pixel bgColor = vdp->palette[vdp->BGColor];
+            Pixel bgColor = vdp->palette[vdp->BGColor]; if (vdp->screenOn) vdp->drawArea = 1; 
 
             switch (hScroll & 7) {
             case 1: *linePtr2++ = bgColor; 
@@ -1006,7 +1006,7 @@ static void RefreshLine2(VDP* vdp, int Y, int X, int X2)
                 }
             }
             else {
-                Pixel bgColor = vdp->palette[vdp->BGColor];
+                Pixel bgColor = vdp->palette[vdp->BGColor]; if (vdp->screenOn) vdp->drawArea = 1; 
 
                 switch (hScroll & 7) {
                 case 1: col = *sprLine++; *linePtr2++ = bgColor; 
@@ -1031,7 +1031,7 @@ static void RefreshLine2(VDP* vdp, int Y, int X, int X2)
     }
 
     if (!vdp->screenOn || !vdp->drawArea) {
-        Pixel bgColor = vdp->palette[vdp->BGColor];
+        Pixel bgColor = vdp->palette[vdp->BGColor]; if (vdp->screenOn) vdp->drawArea = 1; 
         while (X < X2) {
             linePtr2[0] = bgColor;
             linePtr2[1] = bgColor;
@@ -1096,7 +1096,7 @@ static void RefreshLine3(VDP* vdp, int Y, int X, int X2)
 
 
     if (!vdp->screenOn || !vdp->drawArea) {
-        Pixel bgColor = vdp->palette[vdp->BGColor];
+        Pixel bgColor = vdp->palette[vdp->BGColor]; if (vdp->screenOn) vdp->drawArea = 1; 
         while (X < X2) {
             linePtr3[0] = bgColor;
             linePtr3[1] = bgColor;
@@ -1188,7 +1188,7 @@ static void RefreshLine4(VDP* vdp, int Y, int X, int X2)
         }
 
         if (vdpIsEdgeMasked(vdp->vdpRegs)) {
-            Pixel bgColor = vdp->palette[vdp->BGColor];
+            Pixel bgColor = vdp->palette[vdp->BGColor]; if (vdp->screenOn) vdp->drawArea = 1; 
             linePtr4[0] = bgColor;
             linePtr4[1] = bgColor;
             linePtr4[2] = bgColor;
@@ -1211,7 +1211,7 @@ static void RefreshLine4(VDP* vdp, int Y, int X, int X2)
         charPattern = vdp->vram[vdp->chrGenBase & index];
 
         if (!vdp->screenOn || !vdp->drawArea) {
-            Pixel bgColor = vdp->palette[vdp->BGColor];
+            Pixel bgColor = vdp->palette[vdp->BGColor]; if (vdp->screenOn) vdp->drawArea = 1; 
 
             switch (hScroll & 7) {
             case 1: *linePtr4++ = bgColor; 
@@ -1246,7 +1246,7 @@ static void RefreshLine4(VDP* vdp, int Y, int X, int X2)
     }
 
     if (!vdp->screenOn || !vdp->drawArea) {
-        Pixel bgColor = vdp->palette[vdp->BGColor];
+        Pixel bgColor = vdp->palette[vdp->BGColor]; if (vdp->screenOn) vdp->drawArea = 1; 
         while (X < X2) {
             linePtr4[0] = bgColor;
             linePtr4[1] = bgColor;
@@ -1356,7 +1356,7 @@ static void RefreshLine4(VDP* vdp, int Y, int X, int X2)
     }
 
     if (!vdp->screenOn || !vdp->drawArea) {
-        Pixel bgColor = vdp->palette[vdp->BGColor];
+        Pixel bgColor = vdp->palette[vdp->BGColor]; if (vdp->screenOn) vdp->drawArea = 1; 
         while (X < X2) {
             linePtr4[0] = bgColor;
             linePtr4[1] = bgColor;
@@ -1373,7 +1373,7 @@ static void RefreshLine4(VDP* vdp, int Y, int X, int X2)
     else {
         if (X == 0) {
             if (vdpIsEdgeMasked(vdp->vdpRegs)) {
-                Pixel bgColor = vdp->palette[vdp->BGColor];
+                Pixel bgColor = vdp->palette[vdp->BGColor]; if (vdp->screenOn) vdp->drawArea = 1; 
                 linePtr4[0] = bgColor;
                 linePtr4[1] = bgColor;
                 linePtr4[2] = bgColor;
@@ -1388,7 +1388,7 @@ static void RefreshLine4(VDP* vdp, int Y, int X, int X2)
             }
 
             if (!vdp->screenOn || !vdp->drawArea) {
-                Pixel bgColor = vdp->palette[vdp->BGColor];
+                Pixel bgColor = vdp->palette[vdp->BGColor]; if (vdp->screenOn) vdp->drawArea = 1; 
 
                 switch (hScroll & 7) {
                 case 1: *linePtr4++ = bgColor; 
@@ -1413,7 +1413,7 @@ static void RefreshLine4(VDP* vdp, int Y, int X, int X2)
                     }
                 }
                 else {
-                    Pixel bgColor = vdp->palette[vdp->BGColor];
+                    Pixel bgColor = vdp->palette[vdp->BGColor]; if (vdp->screenOn) vdp->drawArea = 1; 
 
                     switch (hScroll & 7) {
                     case 1: col = *sprLine++; *linePtr4++ = bgColor; 
@@ -1510,7 +1510,7 @@ static void RefreshLine5(VDP* vdp, int Y, int X, int X2)
     }
 
     if (!vdp->screenOn || !vdp->drawArea) {
-        Pixel bgColor = vdp->palette[vdp->BGColor];
+        Pixel bgColor = vdp->palette[vdp->BGColor]; if (vdp->screenOn) vdp->drawArea = 1; 
         while (X < X2) {
             linePtr5[0] = bgColor;
             linePtr5[1] = bgColor;
@@ -1543,7 +1543,7 @@ static void RefreshLine5(VDP* vdp, int Y, int X, int X2)
         }
 
         if (X == 0 && vdpIsEdgeMasked(vdp->vdpRegs)) {
-            Pixel bgColor = vdp->palette[vdp->BGColor];
+            Pixel bgColor = vdp->palette[vdp->BGColor]; if (vdp->screenOn) vdp->drawArea = 1; 
             linePtr5[0] = bgColor;
             linePtr5[1] = bgColor;
             linePtr5[2] = bgColor;
@@ -1561,7 +1561,7 @@ static void RefreshLine5(VDP* vdp, int Y, int X, int X2)
         }
 
         if (X == 0 && vdp->screenOn && vdp->drawArea) {
-            Pixel bgColor = vdp->palette[vdp->BGColor];
+            Pixel bgColor = vdp->palette[vdp->BGColor]; if (vdp->screenOn) vdp->drawArea = 1; 
             int i = hScroll & 7;
             int j;
 
@@ -1807,7 +1807,7 @@ static void RefreshLine7(VDP* vdp, int Y, int X, int X2)
         }
 
         if (vdpIsEdgeMasked(vdp->vdpRegs)) {
-            Pixel bgColor = vdp->palette[vdp->BGColor];
+            Pixel bgColor = vdp->palette[vdp->BGColor]; if (vdp->screenOn) vdp->drawArea = 1; 
             linePtr7[0] = bgColor; 
             linePtr7[1] = bgColor; 
             linePtr7[2] = bgColor; 
@@ -1835,7 +1835,7 @@ static void RefreshLine7(VDP* vdp, int Y, int X, int X2)
     }
 
     if (!vdp->screenOn || !vdp->drawArea) {
-        Pixel bgColor = vdp->palette[vdp->BGColor];
+        Pixel bgColor = vdp->palette[vdp->BGColor]; if (vdp->screenOn) vdp->drawArea = 1; 
         while (X < X2) {
             linePtr7[0] = bgColor; 
             linePtr7[1] = bgColor; 
@@ -2141,7 +2141,7 @@ static void RefreshLine7(VDP* vdp, int Y, int X, int X2)
     }
 
     if (!vdp->screenOn || !vdp->drawArea) {
-        Pixel bgColor = vdp->palette[vdp->BGColor];
+        Pixel bgColor = vdp->palette[vdp->BGColor]; if (vdp->screenOn) vdp->drawArea = 1; 
         while (X < X2) {
             linePtr7[0] = bgColor;
             linePtr7[1] = bgColor;
@@ -2181,7 +2181,7 @@ static void RefreshLine7(VDP* vdp, int Y, int X, int X2)
         }
 
         if (X == 0 && vdpIsEdgeMasked(vdp->vdpRegs)) {
-            Pixel bgColor = vdp->palette[vdp->BGColor];
+            Pixel bgColor = vdp->palette[vdp->BGColor]; if (vdp->screenOn) vdp->drawArea = 1; 
             linePtr7[0]  = linePtr7[1]  = bgColor; 
             linePtr7[2]  = linePtr7[3]  = bgColor; 
             linePtr7[4]  = linePtr7[5]  = bgColor; 
@@ -2199,7 +2199,7 @@ static void RefreshLine7(VDP* vdp, int Y, int X, int X2)
         }
 
         if (X == 0 && vdp->screenOn && vdp->drawArea) {
-            Pixel bgColor = vdp->palette[vdp->BGColor];
+            Pixel bgColor = vdp->palette[vdp->BGColor]; if (vdp->screenOn) vdp->drawArea = 1; 
             int i = scroll & 7;
             int j;
 

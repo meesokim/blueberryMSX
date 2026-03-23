@@ -828,7 +828,7 @@ static void onScrModeChange(VDP* vdp, UInt32 time)
     vdp->leftBorder += vdp->HAdjust;
 }
 
-static void vdpUpdateRegisters(VDP* vdp, UInt8 reg, UInt8 value)
+void vdpUpdateRegisters(VDP* vdp, UInt8 reg, UInt8 value)
 { 
     UInt8 change;
 
@@ -2347,3 +2347,9 @@ void vdpCreate(VdpConnector connector, VdpVersion version, VdpSyncMode sync, int
 }
 
 
+
+UInt16* vdpGetPalettePtr() { return theVdp ? theVdp->palette : 0; }
+int vdpGetScreenOn() { return theVdp ? theVdp->screenOn : 0; }
+int vdpGetDrawArea() { return theVdp ? theVdp->drawArea : 0; }
+int vdpGetScreenMode() { return theVdp ? theVdp->screenMode : 0; }
+UInt8* vdpGetRegsPtr() { return theVdp ? theVdp->vdpRegs : 0; }
