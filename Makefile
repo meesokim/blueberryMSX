@@ -38,47 +38,102 @@ endif
 TARGET   = bluemsx-pi
 
 else
+#
+# WSL / Ubuntu: default native Linux. Windows PE cross-build: make OS=mingw MINGW_SDL2=...
+#   OS=linux   — g++, SDL2, libudev, OpenGL (default)
+#   OS=mingw   — x86_64-w64-mingw32-g++, no udev (uses Src/Pi/PiUdevStub.c)
+#
+# Linux deps:  sudo apt install build-essential libsdl2-dev libudev-dev libgl1-mesa-dev pkg-config
+# MinGW deps:  sudo apt install mingw-w64 zlib1g-dev
+#               plus SDL2 MinGW development tree; set MINGW_SDL2 to the x86_64-w64-mingw32 folder
+#               (e.g. SDL2-devel-*/x86_64-w64-mingw32) or use sibling msxplay deps:
+#                 make OS=mingw MINGW_SDL2=$(HOME)/msx/msxplay/deps/local_win/..
+#
+OS       ?= linux
+UNAME    := $(shell uname)
+MINGW_PREFIX ?= x86_64-w64-mingw32
 
-UNAME := $(shell uname)
-COMMON_FLAGS = -DUSE_EGL -DLSB_FIRST -DNO_FILE_HISTORY -DNO_EMBEDDED_SAMPLES -DUSE_SDL2 
-CFLAGS   = -g -w -O3 -ffast-math -fstrict-aliasing -fomit-frame-pointer $(COMMON_FLAGS)
-CXXFLAGS = -fpermissive
-CPPFLAGS = -g $(COMMON_FLAGS)
-LDFLAGS  =  
-ifneq ($(findstring MINGW64,$(UNAME)),)
-LIBS     = -lz -lpthread -lopengl32 
+ifeq ($(OS),mingw)
+  CC      := $(MINGW_PREFIX)-gcc
+  CXX     := $(MINGW_PREFIX)-g++
+  LD      := $(MINGW_PREFIX)-g++
+  TARGET  := bluemsx.exe
+  WINDRES := $(MINGW_PREFIX)-windres
+  # MinGW SDL2 root: .../x86_64-w64-mingw32 from official SDL2-devel-*-mingw.tar.gz
+  MINGW_SDL2 ?=
+  ifneq ($(strip $(MINGW_SDL2)),)
+    SDL2_INC := -I$(MINGW_SDL2)/include -I$(MINGW_SDL2)/include/SDL2
+    SDL2_LIB := -L$(MINGW_SDL2)/lib
+  else
+    SDL2_INC := -I/usr/$(MINGW_PREFIX)/include/SDL2
+    SDL2_LIB := -L/usr/$(MINGW_PREFIX)/lib
+  endif
+  COMMON_FLAGS = -DUSE_EGL -DLSB_FIRST -DNO_FILE_HISTORY -DNO_EMBEDDED_SAMPLES -DUSE_SDL2 \
+                 -D__MINGW32__ -DWIN32 -DSDL_MAIN_HANDLED $(SDL2_INC)
+  CFLAGS   = -g -w -O3 -ffast-math -fstrict-aliasing -fomit-frame-pointer $(COMMON_FLAGS)
+  CXXFLAGS = -fpermissive $(COMMON_FLAGS)
+  CPPFLAGS = -g $(COMMON_FLAGS)
+  LDFLAGS  = $(SDL2_LIB) -mconsole -static-libgcc
+  LIBS     = -lmingw32 -lSDL2main -lSDL2 -lz -lopengl32 -lwinpthread \
+             -lole32 -lversion -limm32 -lsetupapi -lshell32 -lgdi32 -luser32 -lkernel32 -lwinmm -lrpcrt4
+  LIBDIR   =
+else
+  TARGET  := bluemsx
+  COMMON_FLAGS = -DUSE_EGL -DLSB_FIRST -DNO_FILE_HISTORY -DNO_EMBEDDED_SAMPLES -DUSE_SDL2
+  CFLAGS   = -g -w -O3 -ffast-math -fstrict-aliasing -fomit-frame-pointer $(COMMON_FLAGS)
+  CXXFLAGS = -fpermissive
+  CPPFLAGS = -g $(COMMON_FLAGS)
+  LDFLAGS  =
+  ifneq ($(findstring MINGW64,$(UNAME)),)
+    LIBS     = -lz -lpthread -lopengl32
+  endif
+  ifeq ($(UNAME),Linux)
+    LIBS     = -lSDL2 -lz -lpthread -lGL -ludev -ldl
+  endif
+  LIBDIR   =
 endif
-ifeq ($(UNAME),Linux)
-LIBS     = -lSDL2 -lz -lpthread -lGL -ludev -ldl
+
 endif
-LIBDIR   =  
 
-TARGET   = bluemsx
-
-endif 
-
-SDL_CFLAGS := $(shell sdl2-config --cflags)
-SDL_LDFLAGS := $(shell sdl2-config --libs)
+# SDL: host sdl2-config only for native Linux desktop (not MinGW cross, not Raspberry Pi EGL-only)
+ifndef RASPPI
+ifneq ($(OS),mingw)
+SDL_CFLAGS := $(shell pkg-config --silence-errors --cflags sdl2 2>/dev/null)
+ifeq ($(strip $(SDL_CFLAGS)),)
+SDL_CFLAGS := $(shell sdl2-config --cflags 2>/dev/null)
+endif
+SDL_LDFLAGS := $(shell pkg-config --silence-errors --libs sdl2 2>/dev/null)
+ifeq ($(strip $(SDL_LDFLAGS)),)
+SDL_LDFLAGS := $(shell sdl2-config --libs 2>/dev/null)
+endif
+endif
+endif
 
 X11_LIBDIR= /usr/X11R6/libx
 
 #
-# Tools
+# Tools (do not override MinGW cross-compiler set above)
 #
-CC    = $(SILENT)gcc
-CXX   = $(SILENT)g++
-LD    = $(SILENT)g++ 
+ifneq ($(OS),mingw)
+CC    := $(SILENT)gcc
+CXX   := $(SILENT)g++
+LD    := $(SILENT)g++
+endif
 RM    = rm -f
 RMDIR = rm -rf
-MKDIR = mkdir
+MKDIR = mkdir -p
 ECHO  = @echo
 
 #
-# SDL specific flags
+# SDL specific flags (native Linux only)
 #
+ifndef RASPPI
+ifneq ($(OS),mingw)
 CFLAGS += $(SDL_CFLAGS)
 CPPFLAGS += $(SDL_CFLAGS)
 LDFLAGS += $(SDL_LDFLAGS)
+endif
+endif
 
 
 #
@@ -438,8 +493,19 @@ SOURCE_FILES += CoinDevice.c
 SOURCE_FILES += DebugDeviceManager.c
 SOURCE_FILES += Debugger.c 
 
+ifeq ($(OS),mingw)
+SOURCE_FILES += msxgr.cpp
+else
 ifneq ($(findstring MINGW64,$(UNAME)),)
 SOURCE_FILES += msxgr.cpp
+endif
+endif
+
+# Linux udev vs Windows stub (cross MinGW cannot compile PiUdev.c)
+ifndef RASPPI
+ifeq ($(OS),mingw)
+SOURCE_FILES := $(subst PiUdev.c,PiUdevStub.c,$(SOURCE_FILES))
+endif
 endif
 
 HEADER_FILES  =
@@ -453,9 +519,18 @@ PSRCS 		= $(filter %.c %.cc %.cpp %.cxx %.rc,$(wildcard Src/*/*.*))
 OUTPUT_OBJS = $(addprefix $(OUTPUT_DIR)/, $(OBJS))
 
 #
-# Rules
+# Rules  (first real target = default goal — must be `all`, not `help`)
 #
-all: $(OUTPUT_DIR) $(TARGET) $(DEPS)
+.DEFAULT_GOAL := all
+.PHONY: all help
+
+all: $(OUTPUT_DIR) $(TARGET)
+
+help:
+	@echo "blueberryMSX — WSL/Ubuntu"
+	@echo "  make [OS=linux]     — native Linux (needs: libsdl2-dev libudev-dev)"
+	@echo "  make OS=mingw       — Windows .exe (needs: mingw-w64 + SDL2 MinGW devel)"
+	@echo "  MINGW_SDL2=/path/to/x86_64-w64-mingw32  from SDL2-devel-*-mingw.tar.gz"
 
 clean: clean_$(TARGET)	
 
@@ -469,7 +544,8 @@ DEPS := $(OBJS:.o=.dep)
 .c.dep: $(MSRCS)
 	@$(CC) -MM -o objs/$@ $(MSRCS) $(INCLUDE) $<
 
--include $(DEPS)
+# Optional deps (disabled: breaks parallel builds if objs/ missing)
+# -include $(DEPS)
 
 depend:
 %.o: %.c
@@ -486,22 +562,21 @@ clean_$(TARGET):
 
 $(OUTPUT_DIR):
 	$(ECHO) Creating directory $@...
-	@$(MKDIR) objs
 	@$(MKDIR) $(OUTPUT_DIR)
 
-$(OUTPUT_DIR)/%.o: %.c  $(HEADER_FILES)
+$(OUTPUT_DIR)/%.o: %.c  $(HEADER_FILES) | $(OUTPUT_DIR)
 	$(ECHO) Compiling $<...
 	@$(CC) $(CFLAGS) $(CPPFLAGS) $(INCLUDE) -o $@ -c $<
 
-$(OUTPUT_DIR)/%.o: %.cc  $(HEADER_FILES)
+$(OUTPUT_DIR)/%.o: %.cc  $(HEADER_FILES) | $(OUTPUT_DIR)
 	$(ECHO) Compiling $<...
 	@$(CXX) $(CPPFLAGS) $(INCLUDE) -o $@ -c $<
 
-$(OUTPUT_DIR)/%.o: %.cpp  $(HEADER_FILES)
+$(OUTPUT_DIR)/%.o: %.cpp  $(HEADER_FILES) | $(OUTPUT_DIR)
 	$(ECHO) Compiling $<...
 	@$(CXX) $(CPPFLAGS) $(INCLUDE) $(CXXFLAGS) -o $@ -c $<
 
-$(OUTPUT_DIR)/%.o: %.cxx  $(HEADER_FILES)
+$(OUTPUT_DIR)/%.o: %.cxx  $(HEADER_FILES) | $(OUTPUT_DIR)
 	$(ECHO) Compiling $<...
 	@$(CXX) $(CPPFLAGS) $(INCLUDE) -o $@ -c $<
 
