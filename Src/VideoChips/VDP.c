@@ -400,6 +400,9 @@ struct VDP {
 #include "SpriteLine.h"
 #include "Common.h"
 
+/* msxplay RefreshScreen: while grabbing VRAM/regs for host raster, skip sync() in I/O so
+ * blueberry line-renderer does not interleave with the snapshot (openMSX-style separation). */
+extern int vdp_msxplay_coherent_frame_grab;
 
 static void digitize(VDP* vdp);
 static void updateOutputMode(VDP* vdp);
@@ -1086,7 +1089,8 @@ static UInt8 readStatus(VDP* vdp, UInt16 ioPort)
 {
     UInt8 vdpStatus;
 
-    sync(vdp, boardSystemTime());
+    if (!vdp_msxplay_coherent_frame_grab)
+        sync(vdp, boardSystemTime());
 
     vdp->vdpKey = 0;
 
@@ -1155,7 +1159,8 @@ static UInt8 peekVram(VDP* vdp, int address) {
                   
 static void write(VDP* vdp, UInt16 ioPort, UInt8 value)
 {
-    sync(vdp, boardSystemTime());
+    if (!vdp_msxplay_coherent_frame_grab)
+        sync(vdp, boardSystemTime());
 
     if (vdp->vdpVersion == VDP_TMS9929A || vdp->vdpVersion == VDP_TMS99x8A) {
         checkVramAccessTimeTms(vdp);
@@ -2353,3 +2358,4 @@ int vdpGetScreenOn() { return theVdp ? theVdp->screenOn : 0; }
 int vdpGetDrawArea() { return theVdp ? theVdp->drawArea : 0; }
 int vdpGetScreenMode() { return theVdp ? theVdp->screenMode : 0; }
 UInt8* vdpGetRegsPtr() { return theVdp ? theVdp->vdpRegs : 0; }
+UInt8* vdpGetVramPtr(void) { return theVdp ? theVdp->vram : NULL; }

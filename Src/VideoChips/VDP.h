@@ -39,6 +39,9 @@ static const char* VdpNames[] = { "V9938", "V9958", "TMS9929A", "TMS99x8A" };
 
 void vdpCreate(VdpConnector connector, VdpVersion version, VdpSyncMode sync, int vramPages);
 
+/** MSX VRAM backing store (first 16 KiB used for TMS9918); NULL if VDP not created. */
+UInt8* vdpGetVramPtr(void);
+
 int  vdpGetRefreshRate();
 
 void vdpSetSpritesEnable(int enable);
@@ -49,6 +52,9 @@ void vdpSetDisplayEnable(int enable);
 int  vdpGetDisplayEnable();
 
 void vdpForceSync();
+
+/** 1 while VDP is in active display (raster) period; 0 in border/vblank. */
+int vdpGetDrawArea(void);
 
 // Video DA Interface
 
