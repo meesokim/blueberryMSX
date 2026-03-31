@@ -59,23 +59,19 @@ ifeq ($(OS),mingw)
   LD      := $(MINGW_PREFIX)-g++
   TARGET  := bluemsx.exe
   WINDRES := $(MINGW_PREFIX)-windres
-  # MinGW SDL2 root: .../x86_64-w64-mingw32 from official SDL2-devel-*-mingw.tar.gz
-  MINGW_SDL2 ?=
-  ifneq ($(strip $(MINGW_SDL2)),)
-    SDL2_INC := -I$(MINGW_SDL2)/include -I$(MINGW_SDL2)/include/SDL2
-    SDL2_LIB := -L$(MINGW_SDL2)/lib
-  else
-    SDL2_INC := -I/usr/$(MINGW_PREFIX)/include/SDL2
-    SDL2_LIB := -L/usr/$(MINGW_PREFIX)/lib
-  endif
+  # Local MinGW dependencies
+  MINGW_DEPS ?= $(ROOT_DIR)/deps/mingw-w64
+  SDL2_INC := -I$(MINGW_DEPS)/include -I$(MINGW_DEPS)/include/SDL2
+  SDL2_LIB := -L$(MINGW_DEPS)/lib
+  
   COMMON_FLAGS = -DUSE_EGL -DLSB_FIRST -DNO_FILE_HISTORY -DNO_EMBEDDED_SAMPLES -DUSE_SDL2 \
                  -D__MINGW32__ -DWIN32 -DSDL_MAIN_HANDLED $(SDL2_INC)
   CFLAGS   = -g -w -O3 -ffast-math -fstrict-aliasing -fomit-frame-pointer $(COMMON_FLAGS)
   CXXFLAGS = -fpermissive $(COMMON_FLAGS)
   CPPFLAGS = -g $(COMMON_FLAGS)
-  LDFLAGS  = $(SDL2_LIB) -mconsole -static-libgcc
+  LDFLAGS  = $(SDL2_LIB) -static -mconsole -static-libgcc -static-libstdc++
   LIBS     = -lmingw32 -lSDL2main -lSDL2 -lz -lopengl32 -lwinpthread \
-             -lole32 -lversion -limm32 -lsetupapi -lshell32 -lgdi32 -luser32 -lkernel32 -lwinmm -lrpcrt4
+             -lole32 -loleaut32 -lversion -limm32 -lsetupapi -lshell32 -lgdi32 -luser32 -lkernel32 -lwinmm -lrpcrt4
   LIBDIR   =
 else
   TARGET  := bluemsx
@@ -163,6 +159,7 @@ INCLUDE += -I$(ROOT_DIR)/Src/VideoChips
 INCLUDE += -I$(ROOT_DIR)/Src/VideoRender
 INCLUDE += -I$(ROOT_DIR)/Src/Sdl
 INCLUDE += -I$(ROOT_DIR)/Src/Pi
+INCLUDE += -I$(ROOT_DIR)/Src/Windows
 INCLUDE += -I$(ROOT_DIR)/Src/Z80
 
 vpath % $(ROOT_DIR)/Src/Arch
@@ -185,6 +182,7 @@ vpath % $(ROOT_DIR)/Src/VideoRender
 vpath % $(ROOT_DIR)/Src/Sdl
 vpath % $(ROOT_DIR)/Src/Z80
 vpath % $(ROOT_DIR)/Src/Pi
+vpath % $(ROOT_DIR)/Src/Windows
 
 # ifdef RASPPI
 # vpath % $(ROOT_DIR)/Src/Pi
@@ -362,7 +360,7 @@ SOURCE_FILES += romMapperDooly.c
 SOURCE_FILES += romMapperMuPack.c
 SOURCE_FILES += romMapperMsxBus.c
 SOURCE_FILES += romMapperMsxDrive.c
-SOURCE_FILES += zmx.c
+SOURCE_FILES += zmx.cpp
 
 SOURCE_FILES += Crc32Calc.c
 SOURCE_FILES += MediaDb.cpp
@@ -505,6 +503,7 @@ endif
 ifndef RASPPI
 ifeq ($(OS),mingw)
 SOURCE_FILES := $(subst PiUdev.c,PiUdevStub.c,$(SOURCE_FILES))
+SOURCE_FILES := $(subst PiVideo.c,WinVideoStub.c,$(SOURCE_FILES))
 endif
 endif
 
@@ -525,6 +524,9 @@ OUTPUT_OBJS = $(addprefix $(OUTPUT_DIR)/, $(OBJS))
 .PHONY: all help
 
 all: $(OUTPUT_DIR) $(TARGET)
+
+bluemsx.exe:
+	$(MAKE) OS=mingw
 
 help:
 	@echo "blueberryMSX — WSL/Ubuntu"

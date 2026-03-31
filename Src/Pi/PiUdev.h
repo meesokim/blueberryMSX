@@ -34,5 +34,7 @@ int piDestroyUdev();
 
 void piScanDevices();
 
+unsigned char udev_format_unit(char **fileNames, int sector, int sectorSize, int track, int head);
+
 #endif
 

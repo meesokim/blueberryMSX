@@ -131,12 +131,12 @@ static void reset(RomMapperMsxDrive* rm)
 
 static const int mon_ports[] = {}; // 0x7c, 0x7d, 0x7e, 0x7f, 0xa0, 0xa1, 0xa2, 0xa3, 0 };
 
-#define ZMX_DRIVER "./zmxdrive" ZEMMIX_EXT 
+#define ZMX_DRIVER ZEMMIX_DRIVE 
 
 static void initialize() {
     if (hDLL)
         CloseZemmix(hDLL);
-    hDLL = OpenZemmix(RTLD_LAZY);
+    hDLL = OpenZemmix(ZMX_DRIVER, RTLD_LAZY);
     if (!hDLL)
     {
         printf("DLL open error!! %s\n", ZEMMIX_DRIVE);

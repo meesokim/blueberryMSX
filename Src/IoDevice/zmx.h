@@ -21,9 +21,17 @@
     #error define your compiler
 #endif
 
-void *OpenZemmix(int iMode);
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+void *OpenZemmix(char *pcDllname, int iMode);
 void *GetZemmixFunc(void *Lib, char *Fnname);
 int CloseZemmix(void *hDLL);
 char *GetZemmixError();
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

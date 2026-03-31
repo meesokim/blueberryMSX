@@ -401,8 +401,9 @@ struct VDP {
 #include "Common.h"
 
 /* msxplay RefreshScreen: while grabbing VRAM/regs for host raster, skip sync() in I/O so
- * blueberry line-renderer does not interleave with the snapshot (openMSX-style separation). */
-extern int vdp_msxplay_coherent_frame_grab;
+ * blueberry line-renderer does not interleave with the snapshot (openMSX-style separation).
+ * Defined once in video.cpp (extern "C"). */
+int vdp_msxplay_coherent_frame_grab = 0;
 
 static void digitize(VDP* vdp);
 static void updateOutputMode(VDP* vdp);
@@ -1191,13 +1192,17 @@ static void writeLatch(VDP* vdp, UInt16 ioPort, UInt8 value)
 {
 	switch (vdp->vdpVersion) {
 		
-		/* MSX1 VDP: address always updates */
+		/* MSX1 VDP: second byte always merges into address; register writes are not masked by bit 6
+		 * (openMSX VDP::writeIO: !(value & 0x40) || isMSX1VDP). Old code skipped vdpUpdateRegisters
+		 * when bit 6 was set, breaking games/BIOS that use 0xC0-style command bytes. */
         case VDP_TMS9929A: case VDP_TMS99x8A:
 			if (vdp->vdpKey) {
 				vdp->vramAddress = ((UInt16)value << 8 | (vdp->vramAddress & 0xff)) & 0x3fff;
-				if (!(value & 0x40)) {
-					if (value & 0x80) vdpUpdateRegisters(vdp, value, vdp->vdpDataLatch);
-					else readNoTimingCheck(vdp, ioPort);
+				if (value & 0x80) {
+					vdpUpdateRegisters(vdp, value, vdp->vdpDataLatch);
+					vdp->vramAddress = ((UInt16)value << 8 | (vdp->vramAddress & 0xff)) & 0x3fff;
+				} else if (!(value & 0x40)) {
+					readNoTimingCheck(vdp, ioPort);
 				}
 				vdp->vdpKey = 0;
 			}
